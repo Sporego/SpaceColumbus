@@ -7,6 +7,7 @@ using Regions;
 using UnityEngine;
 
 namespace SquareRegions {
+
     public class SquareRegion : Region {
         public RegionGenConfig regionGenConfig;
 
@@ -88,48 +89,7 @@ namespace SquareRegions {
         // unity units coordinates
         override
         public List<Vector2Int> getNeighborDirections () {
-            return new List<Vector2Int> (SquareUtilities.SquareNeighbors);
-        }
-
-        public static class SquareUtilities {
-            // act as indices for the SquareNeighbors array
-            public enum SquareDirections : byte {
-                Top,
-                TopRight,
-                Right,
-                BottomRight,
-                Bottom,
-                BottomLeft,
-                Left,
-                TopLeft
-            }
-
-            public static Vector2Int[] SquareNeighbors = new Vector2Int[] {
-                // order: top, top right, right, bottom right, bottom, bottom left, left, top left
-                new Vector2Int (-1, 0),
-                new Vector2Int (-1, +1),
-                new Vector2Int (0, +1),
-                new Vector2Int (+1, +1),
-                new Vector2Int (+1, 0),
-                new Vector2Int (+1, -1),
-                new Vector2Int (0, -1),
-                new Vector2Int (-1, -1)
-            };
-
-            public enum SquareDirectionsNoDiag : byte {
-                Top,
-                Right,
-                Bottom,
-                Left
-            }
-
-            public static Vector2Int[] SquareNeighborsNoDiag = new Vector2Int[] {
-                // order: top, right, bottom, left
-                new Vector2Int (-1, 0),
-                new Vector2Int (0, +1),
-                new Vector2Int (+1, 0),
-                new Vector2Int (0, -1),
-            };
+            return new List<Vector2Int> (SquareDirections.Neighbors);
         }
 
         // unity coordinate system to hexagonal coords\
@@ -144,6 +104,97 @@ namespace SquareRegions {
         override
         protected int computeGridRadius () {
             return (int) (Mathf.Floor (Mathf.Sqrt (this.regionGenConfig.numberOfTiles)) / 2) - 1;
+        }
+    }
+
+    public static class SquareDirections
+    {
+        public static List<Vector2Int> Neighbors
+        {
+            get
+            {
+                return new List<Vector2Int>() {
+                Top,
+                TopRight,
+                Right,
+                BottomRight,
+                Bottom,
+                BottomLeft,
+                Left,
+                TopLeft
+                };
+            }
+
+        }
+
+        public static List<Vector2Int> NeighborsNoDiags
+        {
+            get
+            {
+                return new List<Vector2Int>() {
+                Top,
+                Right,
+                Bottom,
+                Left,
+                };
+            }
+        }
+
+        public static Vector2Int Top
+        {
+            get
+            {
+                return new Vector2Int(-1, 0);
+            }
+        }
+        public static Vector2Int TopRight
+        {
+            get
+            {
+                return new Vector2Int(-1, +1);
+            }
+        }
+        public static Vector2Int Right
+        {
+            get
+            {
+                return new Vector2Int(0, +1);
+            }
+        }
+        public static Vector2Int BottomRight
+        {
+            get
+            {
+                return new Vector2Int(+1, +1);
+            }
+        }
+        public static Vector2Int Bottom
+        {
+            get
+            {
+                return new Vector2Int(+1, 0);
+            }
+        }
+        public static Vector2Int BottomLeft
+        {
+            get
+            {
+                return new Vector2Int(+1, -1);
+            }
+        }
+        public static Vector2Int Left
+        {
+            get
+            {
+                return new Vector2Int(0, -1);
+            }
+        }
+        public static Vector2Int TopLeft
+        {
+            get
+            {
+                return new Vector2Int(-1, -1);
+            }
         }
     }
 }

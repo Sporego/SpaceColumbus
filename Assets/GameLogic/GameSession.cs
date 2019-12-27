@@ -14,8 +14,8 @@ public class GameSession : MonoBehaviour {
     public bool useRandomSeed;
 
     public bool drawGizmos = true;
-    [Range (1, 100)]
-    public int gizmoSize = 5;
+    [Range (0.001f, 10)]
+    public float gizmoSize = 1f;
     [Range (0, 100)]
     public int gizmoSkip = 0;
 
@@ -63,8 +63,9 @@ public class GameSession : MonoBehaviour {
         }
 
         if (region != null) {
-            Gizmos.color = hexToColor ("#000000"); // black
-            Gizmos.DrawCube (new Vector3 (0, 0, 0), new Vector3 (10000, 0, 10000));
+            // draw some floor
+            Gizmos.color = hexToColor("#000000"); // black
+            //Gizmos.DrawCube (new Vector3 (0, 0, 0), new Vector3 (10000, 0, 10000));
 
             // set color and draw gizmos
             //int water_level = gameSession.mapGenerator.getRegion().getWaterLevelElevation();
@@ -103,35 +104,36 @@ public class GameSession : MonoBehaviour {
                     //        c = hexToColor("#004176");
                     //}
                     //else if (tile.getTileType().GetType() == typeof(LandTileType))
+                    float heigh_scaling = 0.1f;
                     {
                         //Debug.Log("water: elevation " + elevation);
                         if (elevation < 0)
                             c = hexToColor ("#696300");
-                        else if (elevation < 10)
+                        else if (elevation < 10 * heigh_scaling)
                             c = hexToColor ("#00C103");
-                        else if (elevation < 20)
+                        else if (elevation < 20 * heigh_scaling)
                             c = hexToColor ("#59FF00");
-                        else if (elevation < 30)
+                        else if (elevation < 30 * heigh_scaling)
                             c = hexToColor ("#F2FF00");
-                        else if (elevation < 40)
+                        else if (elevation < 40 * heigh_scaling)
                             c = hexToColor ("#FFBE00");
-                        else if (elevation < 50)
+                        else if (elevation < 50 * heigh_scaling)
                             c = hexToColor ("#FF8C00");
-                        else if (elevation < 60)
+                        else if (elevation < 60 * heigh_scaling)
                             c = hexToColor ("#FF6900");
-                        else if (elevation < 70)
+                        else if (elevation < 70 * heigh_scaling)
                             c = hexToColor ("#E74900");
-                        else if (elevation < 80)
+                        else if (elevation < 80 * heigh_scaling)
                             c = hexToColor ("#E10C00");
-                        else if (elevation < 90)
+                        else if (elevation < 90 * heigh_scaling)
                             c = hexToColor ("#971C00");
-                        else if (elevation < 100)
+                        else if (elevation < 100 * heigh_scaling)
                             c = hexToColor ("#C24340");
-                        else if (elevation < 115)
+                        else if (elevation < 115 * heigh_scaling)
                             c = hexToColor ("#B9818A");
-                        else if (elevation < 130)
+                        else if (elevation < 130 * heigh_scaling)
                             c = hexToColor ("#988E8B");
-                        else if (elevation < 160)
+                        else if (elevation < 160 * heigh_scaling)
                             c = hexToColor ("#AEB5BD");
                         else // default
                             c = hexToColor ("#FFFFFF");

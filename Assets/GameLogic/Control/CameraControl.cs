@@ -30,7 +30,7 @@ public class CameraControl : MonoBehaviour {
     // mouse rotation control
     [Header ("Mouse Rotation")]
     public bool allowMouseRotation = true;
-    public float mouseRotationSensitivityModifier = 10f; // mouse rotation movement speed modifier
+    public float mouseRotationSensitivityModifier = 50f; // mouse rotation movement speed modifier
 
     // zoom with FOV 
     [Header ("Camera zoom")]

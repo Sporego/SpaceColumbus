@@ -18,7 +18,7 @@ namespace Noises {
 
         public void generateNoise () {
             if (generated) {
-                Debug.Log ("Noise already generated.");
+                Debug.Log ("Warning: Noise already generated.");
                 return;
             }
             values = generateNoiseValues ();

@@ -234,7 +234,7 @@ namespace HeightMapGenerators
 
         public void generateCrater(float[,] elevations, Vector2 uvCenter, float craterDiam, float craterDepth, int minRadius = 1)
         {
-            Debug.Log("Generating crater at [" + uvCenter.x + ", " + uvCenter.y + "] with craterDiam " + craterDiam + " craterDepth " + craterDepth);
+            //Debug.Log("Generating crater at [" + uvCenter.x + ", " + uvCenter.y + "] with craterDiam " + craterDiam + " craterDepth " + craterDepth);
 
             int mapSize = elevations.GetLength(0);
 
@@ -243,7 +243,7 @@ namespace HeightMapGenerators
 
             int radius = (int)Mathf.Max(craterDiam / 2 * mapSize, minRadius);
 
-            Debug.Log("Placing at indices [" + cI + ", " + cJ + "] with radius " + radius);
+            //Debug.Log("Placing at indices [" + cI + ", " + cJ + "] with radius " + radius);
 
             for (int i = cI - radius; i < cI + radius; i++)
             {

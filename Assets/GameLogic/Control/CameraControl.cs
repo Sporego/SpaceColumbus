@@ -92,6 +92,7 @@ public class CameraControl : MonoBehaviour
     private bool toggleCenterPointFocus = false;
     private bool centeringOnPlayer = false;
 
+    private GameSession gameSession;
     private Region region;
 
     #endregion
@@ -101,7 +102,8 @@ public class CameraControl : MonoBehaviour
         transform.position = getCameraPositionPlayerCentered();
 
         GameObject go = GameObject.FindGameObjectWithTag("GameSession");
-        this.region = ((GameSession)go.GetComponent(typeof(GameSession))).getRegion();
+        gameSession = ((GameSession)go.GetComponent(typeof(GameSession)));
+        region = gameSession.getRegion();
 
         restrictionCenterPoint = new Vector3(0, 0, 0); // GameControl.gameSession.humanPlayer.getPos();
         viewCenterPoint = region.getTileAt(restrictionCenterPoint).pos;
@@ -116,6 +118,8 @@ public class CameraControl : MonoBehaviour
 
     void Update()
     {
+        region = gameSession.getRegion();
+
         cameraMoving = false;
         cameraRotating = false;
         cameraZooming = false;
@@ -159,6 +163,16 @@ public class CameraControl : MonoBehaviour
 
     private void checkInputConfiguration()
     {
+        mouseOverGame = false;
+        // mouse cursor position check
+        if (Input.mousePosition.x >= 0 &&
+            Input.mousePosition.y >= 0 &&
+            Input.mousePosition.x <= Screen.width &&
+            Input.mousePosition.y <= Screen.height)
+        {
+            mouseOverGame = true;
+        }
+
         // right click
         if (Input.GetMouseButtonDown(1))
         {
@@ -169,15 +183,6 @@ public class CameraControl : MonoBehaviour
         if (Input.GetMouseButtonDown(2))
         {
             mousePositionAtMiddleClickDown = Input.mousePosition;
-        }
-
-        // mouse cursor position check
-        if (Input.mousePosition.x >= 0 &&
-            Input.mousePosition.y >= 0 &&
-            Input.mousePosition.x <= Screen.width &&
-            Input.mousePosition.y <= Screen.height)
-        {
-            mouseOverGame = true;
         }
     }
 

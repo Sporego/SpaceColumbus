@@ -1,16 +1,23 @@
-﻿
-using Regions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Utilities.MeshTools;
+using SquareRegions;
 
-[RequireComponent (typeof (MeshFilter), typeof (MeshRenderer), typeof (MeshCollider))]
-public abstract class RegionModelGenerator : MonoBehaviour {
+using Regions;
 
-    public void Start () {
-        GameObject go = GameObject.FindGameObjectWithTag ("GameSession");
-        Region region = ((GameSession) go.GetComponent (typeof (GameSession))).getRegion ();
-        InitializeMesh (region);
+namespace RegionModelGenerators
+{
+    [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
+    public abstract class RegionModelGenerator : MonoBehaviour
+    {
+        public void Start()
+        {
+            this.gameObject.GetComponent<MeshRenderer>().material =
+                GameObject.FindGameObjectWithTag(StaticGameDefs.GameRootObjectTag).GetComponent<MaterialSettings>().MainRegionMaterial;
+        }
+
+        public abstract void InitializeMesh(Region region);
     }
-
-    public abstract void InitializeMesh(Region region);
 }

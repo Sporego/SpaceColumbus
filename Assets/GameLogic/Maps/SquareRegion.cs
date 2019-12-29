@@ -6,37 +6,40 @@ using Noises;
 using Regions;
 using UnityEngine;
 
-namespace SquareRegions {
-
-    public class SquareRegion : Region {
+namespace SquareRegions
+{
+    public class SquareRegion : Region
+    {
         public RegionGenConfig regionGenConfig;
 
-        public SquareRegion (int seed,
+        public SquareRegion(int seed,
             RegionGenConfig regionGenConfig,
             HeightMapConfig heightMapConfig,
             FastPerlinNoiseConfig noiseConfig
-        ) : base (seed) {
+        ) : base(seed)
+        {
             // ErosionConfig erosionConfig
 
             this.regionGenConfig = regionGenConfig;
 
             // compute required array dimensions
-            this.gridRadius = computeGridRadius ();
+            this.gridRadius = computeGridRadius();
 
-            noiseConfig.resolution = (int) (this.gridRadius * heightMapConfig.resolutionScale) + 1;
-            this.heightMap = new HeightMap (seed, heightMapConfig, noiseConfig); //erosionConfig);
+            noiseConfig.resolution = (int)(this.gridRadius * heightMapConfig.resolutionScale) + 1;
+            this.heightMap = new HeightMap(seed, heightMapConfig, noiseConfig); //erosionConfig);
 
             this.tileSize = regionGenConfig.tileSize;
 
-            computeTileCenterCoords ();
+            computeTileCenterCoords();
 
-            computeElevationParameters ();
+            computeElevationParameters();
 
-            Debug.Log ("Generated square region.");
+            Debug.Log("Generated square region.");
         }
 
-        private void computeTileCenterCoords () {
-            Tile[, ] coords;
+        private void computeTileCenterCoords()
+        {
+            Tile[,] coords;
 
             int arraySize = 2 * gridRadius + 1;
             if (arraySize < 0)
@@ -47,21 +50,22 @@ namespace SquareRegions {
             this.regionSize = tileSize * arraySize * 2;
 
             // loop over X and Y in hex cube coordinatess
-            for (int X = -gridRadius; X <= gridRadius; X++) {
-                for (int Y = -gridRadius; Y <= gridRadius; Y++) {
+            for (int X = -gridRadius; X <= gridRadius; X++)
+            {
+                for (int Y = -gridRadius; Y <= gridRadius; Y++)
+                {
                     int i = X + gridRadius;
                     int j = Y + gridRadius;
 
+                    Vector2 uv = new Vector2(i / 2f / gridRadius, j / 2f / gridRadius);
+
+                    float y = this.regionGenConfig.maxElevation * this.heightMap.getNoiseValueUV(uv.x, uv.y); // get elevation from Noise 
+
+                    // initialize tile
                     // compute tile pos in unity axis coordinates
                     float x = tileSize * X;
                     float z = tileSize * Y;
-
-                    Vector2 uv = coordUV (new Coord (new Vector3 (x, 0, z)));
-
-                    float y = this.regionGenConfig.maxElevation * this.heightMap.read (uv.x, uv.y); // get elevation from Noise 
-
-                    // initialize tile
-                    coords[i, j] = new Tile (new Coord (new Vector3 (x, y, z)), i, j);
+                    coords[i, j] = new Tile(new Vector3(x, y, z), i, j);
                 }
             }
 
@@ -72,14 +76,16 @@ namespace SquareRegions {
 
         // unity coordinate pos to storage array index
         override
-        public Tile getTileAt (Vector3 pos) {
-            Vector2 index = regionWorldCoordToIndex (new Vector2 (pos.x, pos.z));
+        public Tile getTileAt(Vector3 pos)
+        {
+            Vector2 index = regionWorldCoordToIndex(new Vector2(pos.x, pos.z));
 
             int i, j;
-            i = (int) index.x + this.gridRadius;
-            j = (int) index.y + this.gridRadius;
+            i = (int)index.x + this.gridRadius;
+            j = (int)index.y + this.gridRadius;
 
-            if (i < 0 || j < 0 || i >= tiles.GetLength (0) || j >= tiles.GetLength (0)) {
+            if (i < 0 || j < 0 || i >= tiles.GetLength(0) || j >= tiles.GetLength(0))
+            {
                 return null;
             }
 
@@ -88,22 +94,25 @@ namespace SquareRegions {
 
         // unity units coordinates
         override
-        public List<Vector2Int> getNeighborDirections () {
-            return new List<Vector2Int> (SquareDirections.Neighbors);
+        public List<Vector2Int> getNeighborDirections()
+        {
+            return new List<Vector2Int>(SquareDirections.Neighbors);
         }
 
         // unity coordinate system to hexagonal coords\
         override
-        protected Vector3 regionWorldCoordToIndex (float x, float y) {
-            float i = (int) (Mathf.Floor (x / this.tileSize + 0.5f));
-            float j = (int) (Mathf.Floor (y / this.tileSize + 0.5f));
-            return new Vector3 (i, j, 0);
+        protected Vector3 regionWorldCoordToIndex(float x, float y)
+        {
+            float i = (int)(Mathf.Floor(x / this.tileSize + 0.5f));
+            float j = (int)(Mathf.Floor(y / this.tileSize + 0.5f));
+            return new Vector3(i, j, 0);
         }
 
         // *** REGION SIZE COMPUTATIONS *** //
         override
-        protected int computeGridRadius () {
-            return (int) (Mathf.Floor (Mathf.Sqrt (this.regionGenConfig.numberOfTiles)) / 2) - 1;
+        protected int computeGridRadius()
+        {
+            return (int)(Mathf.Floor(Mathf.Sqrt(this.regionGenConfig.numberOfTiles)) / 2) - 1;
         }
     }
 

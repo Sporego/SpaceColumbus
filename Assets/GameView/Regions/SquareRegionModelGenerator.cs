@@ -6,7 +6,7 @@ using UnityEngine;
 using Utilities.MeshTools;
 using SquareRegions;
 
-public class SquareRegionView : RegionView
+public class SquareRegionModelGenerator : RegionModelGenerator
 {
     public void Start()
     {
@@ -44,7 +44,7 @@ public class SquareRegionView : RegionView
                     // add 2 triangles per tile
                     // *  *
                     // *  *
-                    // bottom right * is the current tile, will generate connections to 3 adjacent tiles
+                    // bottom left star is the current tile, will generate connections to 3 adjacent tiles
 
                     Vector2Int ind1, ind2;
                     for (int c = 0; c < 2; c++)
@@ -79,16 +79,16 @@ public class SquareRegionView : RegionView
                             {
                                 trisDict.Add(triStringKey, true);
 
-                                yTotal += tiles[i, j].coord.y + tiles[ind1.x, ind1.y].coord.y + tiles[ind2.x, ind2.y].coord.y;
+                                yTotal += tiles[i, j].pos.y + tiles[ind1.x, ind1.y].pos.y + tiles[ind2.x, ind2.y].pos.y;
                                 List<Vector3> verticesLocal = new List<Vector3>();
-                                verticesLocal.Add(tiles[i, j].coord.getPos());
-                                verticesLocal.Add(tiles[ind1.x, ind1.y].coord.getPos());
-                                verticesLocal.Add(tiles[ind2.x, ind2.y].coord.getPos());
+                                verticesLocal.Add(tiles[i, j].pos);
+                                verticesLocal.Add(tiles[ind1.x, ind1.y].pos);
+                                verticesLocal.Add(tiles[ind2.x, ind2.y].pos);
 
                                 List<Vector2> uvsLocal = new List<Vector2>();
-                                uvsLocal.Add(region.coordUV(tiles[i, j].coord));
-                                uvsLocal.Add(region.coordUV(tiles[ind1.x, ind1.y].coord));
-                                uvsLocal.Add(region.coordUV(tiles[ind2.x, ind2.y].coord));
+                                uvsLocal.Add(region.pos2UV(tiles[i, j].pos));
+                                uvsLocal.Add(region.pos2UV(tiles[ind1.x, ind1.y].pos));
+                                uvsLocal.Add(region.pos2UV(tiles[ind2.x, ind2.y].pos));
 
                                 MeshTriAdder.addTriangle(new Vector3Int(0, 1, 2), verticesLocal, verticesDict, tris, normals, uvsLocal, uvs);
                                 trisCount++;
@@ -101,30 +101,32 @@ public class SquareRegionView : RegionView
                     }
                 }
             }
-
-            Debug.Log("Tiles with size " + length);
-            Debug.Log("Built a mesh with " + verticesDict.Keys.Count + " vertices and " + trisCount + " triangles; total height " + yTotal + ".");
-
-            Mesh mesh = new Mesh();
-
-            mesh.Clear();
-            mesh.subMeshCount = 2;
-
-            mesh.SetVertices(verticesDict.Keys.ToList<Vector3>());
-
-            mesh.SetTriangles(tris.ToArray(), 0);
-
-            mesh.SetUVs(0, uvs);
-
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-
-            // assign back to meshFilter
-            MeshFilter meshFilter = GetComponent<MeshFilter>();
-            MeshCollider meshCollider = GetComponent<MeshCollider>();
-
-            meshFilter.mesh = mesh;
-            meshCollider.sharedMesh = meshFilter.sharedMesh;
         }
+
+        Debug.Log("Tiles with size " + length);
+        Debug.Log("Built a mesh with " + verticesDict.Keys.Count + " vertices and " + trisCount + " triangles; total height " + yTotal + ".");
+
+        Mesh mesh = new Mesh();
+
+        mesh.Clear();
+        mesh.subMeshCount = 2;
+
+        mesh.SetVertices(verticesDict.Keys.ToList<Vector3>());
+
+        mesh.SetTriangles(tris.ToArray(), 0);
+
+        mesh.SetUVs(0, uvs);
+
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+
+        // assign back to meshFilter
+        MeshFilter meshFilter = GetComponent<MeshFilter>();
+        MeshCollider meshCollider = GetComponent<MeshCollider>();
+
+        mesh.Optimize();
+
+        meshFilter.mesh = mesh;
+        meshCollider.sharedMesh = meshFilter.sharedMesh;
     }
 }

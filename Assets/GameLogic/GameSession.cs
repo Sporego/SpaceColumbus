@@ -71,7 +71,7 @@ public class GameSession : MonoBehaviour {
             //int water_level = gameSession.mapGenerator.getRegion().getWaterLevelElevation();
             int order = 0;
             Color c;
-            foreach (Coord tile in region.getTileVertices ()) {
+            foreach (Vector3 pos in region.getTileVertices ()) {
                 if (gizmoSkip + 1 != 0) {
                     order = ++order % (gizmoSkip + 1);
                     if (order != 0) {
@@ -80,7 +80,7 @@ public class GameSession : MonoBehaviour {
                 }
                 //if (tile.getTileType() != null)
                 {
-                    int elevation = (int) tile.y /*- water_level*/ ;
+                    int elevation = (int) pos.y /*- water_level*/ ;
                     //if (tile.getTileType().GetType() == typeof(WaterTileType))
                     //{
                     //    //Debug.Log("water: elevation " + elevation);
@@ -141,7 +141,6 @@ public class GameSession : MonoBehaviour {
                     //else
                     //    c = new Color(0, 0, 0, 0);
                     Gizmos.color = c;
-                    Vector3 pos = tile.getPos ();;
                     //if (elevation < 0) {
                     //    pos.y = water_level; // if it's water, draw elevation as equal to water_level
                     //}

@@ -6,25 +6,26 @@ using Regions;
 using UnityEngine;
 using Utilities.Misc;
 
-[AddComponentMenu ("Input-Control")]
-public class GameControl : MonoBehaviour {
+[AddComponentMenu("Input-Control")]
+public class GameControl : MonoBehaviour
+{
     #region Configuration
 
-    [Header ("Movement configuration")]
-    [Range (0, 100)]
+    [Header("Movement configuration")]
+    [Range(0, 100)]
     public int maxActionPoints = 50;
-    [Range (0, 100)]
+    [Range(0, 100)]
     public int actionPoints = 50;
 
-    [Header ("GUI configuration")]
+    [Header("GUI configuration")]
     public bool showGUI = true;
     public int guiMenuWidth = 200;
     public int guiMenuHeight = 300;
 
-    [Header ("Pathfinding configuration")]
+    [Header("Pathfinding configuration")]
     public InputModifiers.KeyboardControlConfiguration pathfindKeyControl;
 
-    [Header ("Indicators")]
+    [Header("Indicators")]
     #region SelectionIndicators
     public GameObject mouseOverIndicator;
     public GameObject selectionIndicator;
@@ -56,84 +57,105 @@ public class GameControl : MonoBehaviour {
 
     #endregion
 
-    void Start () {
-        gameSession = (GameSession) GameObject.FindGameObjectWithTag ("GameSession").GetComponent (typeof (GameSession));
+    void Start()
+    {
+        gameSession = (GameSession)GameObject.FindGameObjectWithTag("GameSession").GetComponent(typeof(GameSession));
 
-        AstarPF = new AstarPathFinder (maxDepth: 50, maxCost: 1000, maxIncrementalCost: maxActionPoints);
-        DijsktraPF = new DijkstraPathFinder (maxDepth: maxActionPoints,
+        AstarPF = new AstarPathFinder(maxDepth: 50, maxCost: 1000, maxIncrementalCost: maxActionPoints);
+        DijsktraPF = new DijkstraPathFinder(maxDepth: maxActionPoints,
             maxCost: actionPoints,
             maxIncrementalCost: maxActionPoints
         );
 
-        dcd = gameObject.GetComponent<DoubleClickDetector> ();
+        dcd = gameObject.GetComponent<DoubleClickDetector>();
 
         // create GUI style
-        guiStyle = new GUIStyle ();
+        guiStyle = new GUIStyle();
         guiStyle.alignment = TextAnchor.LowerLeft;
-        guiStyle.normal.textColor = Tools.hexToColor ("#153870");
+        guiStyle.normal.textColor = Tools.hexToColor("#153870");
 
-        mouseOverIndicator = Instantiate (mouseOverIndicator, transform);
-        selectionIndicator = Instantiate (selectionIndicator, transform);
+        mouseOverIndicator = Instantiate(mouseOverIndicator, transform);
+        selectionIndicator = Instantiate(selectionIndicator, transform);
     }
 
-    void Update () {
+    void Update()
+    {
         // update selection tile
-        Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hitInfo;
-        if (Physics.Raycast (ray, out hitInfo)) {
+        if (Physics.Raycast(ray, out hitInfo))
+        {
             GameObject hitObject = hitInfo.collider.transform.gameObject;
-            if (hitObject == null) {
+            if (hitObject == null)
+            {
                 // nothing to do
-            } else {
-                if ((mouseOverTile = gameSession.getRegion ().getTileAt (hitInfo.point)) != null) {
-                    mouseOverIndicator.transform.position = mouseOverTile.coord.getPos (); // move mouseOverIndicator
-                } else {
+            }
+            else
+            {
+                if ((mouseOverTile = gameSession.getRegion().getTileAt(hitInfo.point)) != null)
+                {
+                    mouseOverIndicator.transform.position = mouseOverTile.pos; // move mouseOverIndicator
+                }
+                else
+                {
                     // do nothing
                 }
             }
         }
 
         // left click
-        if (dcd.IsDoubleClick () && mouseOverTile != null) {
-            selectionIndicator.transform.position = mouseOverTile.coord.getPos (); // move selectionTileIndicator
+        if (dcd.IsDoubleClick() && mouseOverTile != null)
+        {
+            selectionIndicator.transform.position = mouseOverTile.pos; // move selectionTileIndicator
             selectedTile = mouseOverTile;
         }
 
         // right click
-        bool rightMouseClick = Input.GetMouseButtonDown (1);
-        if (pathfindKeyControl.isActivated ()) {
-            ChangeMoveMode ();
+        bool rightMouseClick = Input.GetMouseButtonDown(1);
+        if (pathfindKeyControl.isActivated())
+        {
+            ChangeMoveMode();
         }
 
         /*PATHFINDING PART */
-        if (moveMode) {
+        if (moveMode)
+        {
             DijsktraPF.maxDepth = maxActionPoints;
             DijsktraPF.maxCost = actionPoints;
 
             // draw move range only 
             // TODO optimize this to not recalculate path on every frame
-            if (firstClickedTile != null) {
-                DrawMoveRange ();
+            if (firstClickedTile != null)
+            {
+                DrawMoveRange();
 
-                if (mouseOverTile != null) {
-                    DrawPathTo (mouseOverTile);
+                if (mouseOverTile != null)
+                {
+                    DrawPathTo(mouseOverTile);
                 }
             }
 
             // *** MOUSE CLICKS CONTROL PART *** //
-            if (rightMouseClick && mouseOverTile != null) {
-                if (selectionOrder) {
+            if (rightMouseClick && mouseOverTile != null)
+            {
+                if (selectionOrder)
+                {
                     firstClickedTile = mouseOverTile;
                     // draw path using A* pathfinder (not Dijkstra) for faster performance
-                } else {
+                }
+                else
+                {
                     secondClickedTile = mouseOverTile;
 
                     // check if right clicked same tile twice
-                    if (firstClickedTile.Equals (secondClickedTile)) {
+                    if (firstClickedTile.Equals(secondClickedTile))
+                    {
                         //pathResult = GameControl.gameSession.playerAttemptMove(firstClickedTile, out attemptedMoveMessage, movePlayer: true);
-                        StartCoroutine (displayPath (pathResult));
-                        ChangeMoveMode ();
-                    } else {
+                        StartCoroutine(displayPath(pathResult));
+                        ChangeMoveMode();
+                    }
+                    else
+                    {
                         // clicked another tile: overwrite first selection
                         firstClickedTile = mouseOverTile;
 
@@ -147,116 +169,135 @@ public class GameControl : MonoBehaviour {
         }
     }
 
-    public void ChangeMoveMode () {
+    public void ChangeMoveMode()
+    {
         moveMode = !moveMode;
     }
 
-    public void resetMouseControlView () {
+    public void resetMouseControlView()
+    {
         moveMode = false;
     }
 
-    public void DrawMoveRange () {
-        StartCoroutine (
-            displayPath (
-                DijsktraPF.pathFromTo (
-                    gameSession.getRegion (),
+    public void DrawMoveRange()
+    {
+        StartCoroutine(
+            displayPath(
+                DijsktraPF.pathFromTo(
+                    gameSession.getRegion(),
                     firstClickedTile,
-                    new Tile (new Coord (new Vector3 (float.MaxValue, float.MaxValue, float.MaxValue)), int.MaxValue, int.MaxValue),
-                    playersCanBlockPath : true
+                    new Tile(new Vector3(float.MaxValue, float.MaxValue, float.MaxValue), int.MaxValue, int.MaxValue),
+                    playersCanBlockPath: true
                 ),
-                writeToGlobalPathResult : false,
-                displayTimeInSeconds : 0.01f,
-                drawExplored : false));
+                writeToGlobalPathResult: false,
+                displayTimeInSeconds: 0.01f,
+                drawExplored: false));
     }
 
-    public void DrawPathTo (Tile tile) {
-        StartCoroutine (
-            displayPath (
-                AstarPF.pathFromTo (
-                    gameSession.getRegion (),
+    public void DrawPathTo(Tile tile)
+    {
+        StartCoroutine(
+            displayPath(
+                AstarPF.pathFromTo(
+                    gameSession.getRegion(),
                     firstClickedTile,
                     tile,
-                    playersCanBlockPath : true
+                    playersCanBlockPath: true
                 ),
-                writeToGlobalPathResult : false,
-                displayTimeInSeconds : 0.01f,
-                drawExplored : false,
-                drawCost : true
+                writeToGlobalPathResult: false,
+                displayTimeInSeconds: 0.01f,
+                drawExplored: false,
+                drawCost: true
             ));
     }
 
-    public IEnumerator displayPath (PathResult pr, string tag = "", float displayTimeInSeconds = 2f, bool drawPath = true, bool writeToGlobalPathResult = true, bool drawExplored = false, bool drawCost = false) {
-        string currentHash = pr.computeHashString ();
+    public IEnumerator displayPath(PathResult pr, string tag = "", float displayTimeInSeconds = 2f, bool drawPath = true, bool writeToGlobalPathResult = true, bool drawExplored = false, bool drawCost = false)
+    {
+        string currentHash = pr.computeHashString();
 
         {
             List<GameObject> pathIndicators = null;
             List<GameObject> exploredIndicators = null;
             GameObject costIndicator = null;
 
-            if (pr != null) {
+            if (pr != null)
+            {
                 if (writeToGlobalPathResult)
                     pathResult = pr;
 
                 // reset indicator lists
-                pathIndicators = new List<GameObject> ();
-                exploredIndicators = new List<GameObject> ();
+                pathIndicators = new List<GameObject>();
+                exploredIndicators = new List<GameObject>();
 
-                if (drawPath) {
+                if (drawPath)
+                {
                     // draw path info
-                    foreach (Tile tile in pr.getTilesOnPathStartFirst ()) {
-                        GameObject _pathIndicator = Instantiate (pathIndicator, this.transform);
-                        _pathIndicator.transform.position = tile.coord.getPos ();
-                        pathIndicators.Add (_pathIndicator);
+                    foreach (Tile tile in pr.getTilesOnPathStartFirst())
+                    {
+                        GameObject _pathIndicator = Instantiate(pathIndicator, this.transform);
+                        _pathIndicator.transform.position = tile.pos;
+                        pathIndicators.Add(_pathIndicator);
                     }
                 }
 
-                if (drawExplored) {
+                if (drawExplored)
+                {
                     // draw explored info
-                    foreach (Tile tile in pr.getExploredTiles ()) {
-                        GameObject exploredIndicator = Instantiate (pathExploredIndicator, transform);
-                        exploredIndicator.transform.position = tile.coord.getPos ();
-                        exploredIndicators.Add (exploredIndicator);
+                    foreach (Tile tile in pr.getExploredTiles())
+                    {
+                        GameObject exploredIndicator = Instantiate(pathExploredIndicator, transform);
+                        exploredIndicator.transform.position = tile.pos;
+                        exploredIndicators.Add(exploredIndicator);
                     }
                 }
             }
 
             // wait for some time
-            yield return new WaitForSeconds (displayTimeInSeconds);
+            yield return new WaitForSeconds(displayTimeInSeconds);
 
             // destroy indicators
             if (pathIndicators != null)
-                foreach (GameObject go in pathIndicators) {
-                    Destroy (go);
+                foreach (GameObject go in pathIndicators)
+                {
+                    Destroy(go);
                 }
             if (exploredIndicators != null)
-                foreach (GameObject go in exploredIndicators) {
-                    Destroy (go);
+                foreach (GameObject go in exploredIndicators)
+                {
+                    Destroy(go);
                 }
             if (costIndicator != null)
-                Destroy (costIndicator);
+                Destroy(costIndicator);
         }
     }
 
-    void OnGUI () {
-        if (showGUI) {
-            if (selectedTile != null) {
-                string currentSelection = "Selected " + selectedTile.coord.getPos ();
-                GUI.Box (new Rect (Screen.width - guiMenuWidth, Screen.height - guiMenuHeight, guiMenuWidth, guiMenuHeight), currentSelection);
+    void OnGUI()
+    {
+        if (showGUI)
+        {
+            if (selectedTile != null)
+            {
+                string currentSelection = "Selected " + selectedTile.pos;
+                GUI.Box(new Rect(Screen.width - guiMenuWidth, Screen.height - guiMenuHeight, guiMenuWidth, guiMenuHeight), currentSelection);
             }
-            if (firstClickedTile != null) {
-                string leftSelection = "First tile\n" + firstClickedTile.coord.getPos ();
-                GUI.Label (new Rect (0, Screen.height - guiMenuHeight, guiMenuWidth, guiMenuHeight), leftSelection, guiStyle);
+            if (firstClickedTile != null)
+            {
+                string leftSelection = "First tile\n" + firstClickedTile.pos;
+                GUI.Label(new Rect(0, Screen.height - guiMenuHeight, guiMenuWidth, guiMenuHeight), leftSelection, guiStyle);
             }
-            if (secondClickedTile != null) {
-                string rightSelection = "Second tile\n" + secondClickedTile.coord.getPos ();
-                GUI.Label (new Rect (0, Screen.height - 2 * guiMenuHeight, guiMenuWidth, guiMenuHeight), rightSelection, guiStyle);
+            if (secondClickedTile != null)
+            {
+                string rightSelection = "Second tile\n" + secondClickedTile.pos;
+                GUI.Label(new Rect(0, Screen.height - 2 * guiMenuHeight, guiMenuWidth, guiMenuHeight), rightSelection, guiStyle);
             }
-            if (pathResult != null) {
+            if (pathResult != null)
+            {
                 string pathInfo = "Path cost:" + pathResult.pathCost;
-                foreach (Tile tile in pathResult.getTilesOnPathStartFirst ()) {
+                foreach (Tile tile in pathResult.getTilesOnPathStartFirst())
+                {
                     pathInfo += "\n" + tile.index;
                 }
-                GUI.Label (new Rect (guiMenuWidth, Screen.height - guiMenuHeight, guiMenuWidth, guiMenuHeight), pathInfo, guiStyle);
+                GUI.Label(new Rect(guiMenuWidth, Screen.height - guiMenuHeight, guiMenuWidth, guiMenuHeight), pathInfo, guiStyle);
             }
         }
     }

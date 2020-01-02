@@ -14,6 +14,8 @@ namespace HeightMapGenerators
 
         public int preset = -1;
 
+        [Header("Height Map Post Processing Configuration")]
+
         // how uniform the overall terrain should be
         [Range(0, 1 - configEpsilon)]
         public float flattenLinearStrength = 0.25f;
@@ -36,27 +38,31 @@ namespace HeightMapGenerators
         [Range(1, 10)]
         public float amplification = 5;
 
+        [Header("Craters configuration")]
+
         [Range(0, 1f)]
-        public float craterImportance = 0.5f;
+        public float craterImportance = 0.075f;
 
         [Range(0, 100f)]
-        public float centralCraterDepth = 10f;
+        public float centralCraterDepth = 25f;
 
         [Range(0.1f, 1f)]
         public float centralCraterWidth = 0.5f;
 
         // how many craters to generate on the map
-        [Range(1, 100)]
-        public int craterCount = 10;
+        [Range(1, 1000)]
+        public int craterCount = 100;
 
         [Range(0, 1f)]
-        public float craterRandomInfluence = 0.5f;
+        public float craterRandomInfluence = 0.95f;
 
         [Range(0.001f, 1f)]
-        public float craterSize = 0.05f;
+        public float craterSize = 0.85f;
 
         [Range(0.001f, 100f)]
-        public float craterDepth = 5f;
+        public float craterDepth = 45f;
+
+        [Header("Map Gen Noise configuration")]
 
         // height map resolution depends on region size; this scaler can be used to increase the resolution
         [Range(configEpsilon, 10f)]

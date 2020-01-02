@@ -1,18 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 using Noises;
 using HeightMapGenerators;
 
 using Regions;
 using SquareRegions;
-
+using Navigation;
 using RegionModelGenerators;
 
 using Utilities.Misc;
-
-
 
 public class GameSession : MonoBehaviour
 {
@@ -41,7 +40,8 @@ public class GameSession : MonoBehaviour
         Initialize();
     }
 
-    public void Initialize() {
+    public void Initialize()
+    {
         Debug.Log("Initializing GameSession");
 
         this.seed = useRandomSeed ? UnityEngine.Random.Range(int.MinValue, int.MaxValue) : this.seed;
@@ -50,6 +50,8 @@ public class GameSession : MonoBehaviour
 
         BuildRegion();
         BuildRegionView();
+        BuildNavMeshes();
+        SpawnSimpleAgent();
     }
 
     public void BuildRegion()
@@ -59,9 +61,10 @@ public class GameSession : MonoBehaviour
 
     public void BuildRegionView()
     {
-        GameObject viewablesRoot = GameObject.FindGameObjectWithTag(StaticGameDefs.ViewablesObjectTag);
+        GameObject viewablesRoot = GameObject.FindGameObjectWithTag(StaticGameDefs.ViewablesTag);
 
-        foreach (Transform t in viewablesRoot.transform) {
+        foreach (Transform t in viewablesRoot.transform)
+        {
             GameObject.Destroy(t.gameObject);
         }
 
@@ -70,6 +73,31 @@ public class GameSession : MonoBehaviour
 
         SquareRegionModelGenerator squareRegionModelGenerator = regionView.AddComponent<RegionModelGenerators.SquareRegionModelGenerator>();
         squareRegionModelGenerator.InitializeMesh(this.region);
+    }
+
+    public void BuildNavMeshes()
+    {
+        GameObject navMeshRoot = GameObject.FindGameObjectWithTag(StaticGameDefs.NavMeshRootTag);
+        NavMeshGenerator navMeshGenerator = navMeshRoot.GetComponent<NavMeshGenerator>();
+        navMeshGenerator.BuildNavMesh();
+    }
+
+    public void SpawnSimpleAgent()
+    {
+        GameObject agentRoot = GameObject.FindGameObjectWithTag(StaticGameDefs.AgentRootTag);
+
+        GameObject gameRoot = GameObject.FindGameObjectWithTag(StaticGameDefs.GameRootTag);
+        GameObject agentPrefab = gameRoot.GetComponent<PrefabManager>().AgentPrefab;
+
+        GameObject agent = GameObject.Instantiate(agentPrefab, agentRoot.transform);
+
+        // set correct height as per game map
+        Vector3 pos = agent.transform.position;
+        pos.y = this.region.getTileAt(new Vector3()).pos.y;
+        agent.transform.position = pos;
+
+        // add nav mesh agent component
+        BasicAgent basicAgent = agent.AddComponent<BasicAgent>();
     }
 
     public Region getRegion()

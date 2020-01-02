@@ -35,7 +35,7 @@ namespace Regions
         [Range(0.001f, 10f)]
         public float tileSize;
 
-        [Range(1, 1000)]
+        [Range(1, 100)]
         public int maxElevation;
 
         public RegionGenConfig() { }

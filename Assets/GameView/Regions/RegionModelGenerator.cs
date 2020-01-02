@@ -15,7 +15,8 @@ namespace RegionModelGenerators
         public void Start()
         {
             this.gameObject.GetComponent<MeshRenderer>().material =
-                GameObject.FindGameObjectWithTag(StaticGameDefs.GameRootObjectTag).GetComponent<MaterialSettings>().MainRegionMaterial;
+                GameObject.FindGameObjectWithTag(StaticGameDefs.GameRootTag).GetComponent<MaterialSettings>().MainRegionMaterial;
+            this.gameObject.tag = StaticGameDefs.NavMeshElementTag;
         }
 
         public abstract void InitializeMesh(Region region);

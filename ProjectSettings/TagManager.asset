@@ -8,6 +8,9 @@ TagManager:
   - GameRoot
   - NavMeshRoot
   - Viewables
+  - NavMeshElement
+  - AgentRoot
+  - BuildingRoot
   layers:
   - Default
   - TransparentFX

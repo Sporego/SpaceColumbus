@@ -31,6 +31,10 @@ namespace Navigation
 
         public void BuildNavMesh()
         {
+            // remove existing navMeshSurfaces
+            foreach (NavMeshSurface navMeshSurface in navMeshRoot.GetComponents<NavMeshSurface>())
+                Destroy(navMeshSurface);
+
             int agentTypeCount = UnityEngine.AI.NavMesh.GetSettingsCount();
             if (agentTypeCount < 1) { return; }
             for (int i = 0; i < agentTypeCount; ++i)

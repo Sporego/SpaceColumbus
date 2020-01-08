@@ -101,8 +101,7 @@ public class CameraControl : MonoBehaviour
     {
         transform.position = getCameraPositionPlayerCentered();
 
-        GameObject go = GameObject.FindGameObjectWithTag("GameSession");
-        gameSession = ((GameSession)go.GetComponent(typeof(GameSession)));
+        gameSession = GameObject.FindGameObjectWithTag(StaticGameDefs.GameSessionTag).GetComponent<GameSession>();
         region = gameSession.getRegion();
 
         restrictionCenterPoint = new Vector3(0, 0, 0); // GameControl.gameSession.humanPlayer.getPos();
@@ -148,17 +147,6 @@ public class CameraControl : MonoBehaviour
         processCameraDeltas(positionDelta, rotationDelta, fovDelta);
 
         RestrictCamera();
-    }
-
-    // LateUpdate  is called once per frame after all Update are done
-    void LateUpdate()
-    {
-
-    }
-
-    public void toggleCenterOnPlayer()
-    {
-        toggleCenterPointFocus = !toggleCenterPointFocus;
     }
 
     private void checkInputConfiguration()

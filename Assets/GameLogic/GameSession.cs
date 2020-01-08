@@ -52,6 +52,10 @@ public class GameSession : MonoBehaviour
         BuildRegionView();
         BuildNavMeshes();
         SpawnSimpleAgent();
+        SpawnSimpleAgent();
+        SpawnSimpleAgent();
+        SpawnSimpleAgent();
+        SpawnSimpleAgent();
     }
 
     public void BuildRegion()

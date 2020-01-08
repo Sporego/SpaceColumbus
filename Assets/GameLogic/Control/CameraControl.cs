@@ -4,14 +4,17 @@
 
 using System;
 using System.Collections;
-using Regions;
 using UnityEngine;
+
+using Regions;
+using InputControls;
 
 [AddComponentMenu("Camera-Control/Keyboard")]
 public class CameraControl : MonoBehaviour
 {
     public float globalSensitivity = 10f; // global camera speed sensitivity
-
+    public float cameraSpeedModifierMultiplier = 2.5f; // global camera speed sensitivity multipler when a special modifer key is held down
+    
     #region MouseControlConfiguration
 
     // camera scrolling sensitivity
@@ -140,9 +143,11 @@ public class CameraControl : MonoBehaviour
 
         checkInputConfiguration();
 
-        Vector3 positionDelta = processCameraMovement();
-        Vector3 rotationDelta = processCameraRotation();
-        float fovDelta = processCameraZoom();
+        float modifier = KeyActiveChecker.isActive(GameControlsManager.cameraSpeedModifier) ? cameraSpeedModifierMultiplier : 1f;
+
+        Vector3 positionDelta = processCameraMovement() * modifier;
+        Vector3 rotationDelta = processCameraRotation() * modifier;
+        float fovDelta = processCameraZoom() * modifier;
 
         processCameraDeltas(positionDelta, rotationDelta, fovDelta);
 
@@ -161,14 +166,14 @@ public class CameraControl : MonoBehaviour
             mouseOverGame = true;
         }
 
-        // right click
-        if (Input.GetMouseButtonDown(1))
+        // on right click
+        if (KeyActiveChecker.isActive(GameControlsManager.rightClickDown))
         {
             mousePositionAtRightClickDown = Input.mousePosition;
         }
 
-        // middle click
-        if (Input.GetMouseButtonDown(2))
+        // on middle click
+        if (KeyActiveChecker.isActive(GameControlsManager.middleClickDown))
         {
             mousePositionAtMiddleClickDown = Input.mousePosition;
         }
@@ -186,33 +191,37 @@ public class CameraControl : MonoBehaviour
         forward.y = 0;
         right.y = 0;
 
-        if (Input.GetKey(KeyCode.W) || (allowEdgeScrolling && Input.mousePosition.y >= Screen.height - edgeScrollDetectBorderThickness))
+        if (KeyActiveChecker.isActive(GameControlsManager.cameraForward) ||
+            (allowEdgeScrolling && Input.mousePosition.y >= Screen.height - edgeScrollDetectBorderThickness))
         {
             positionDelta += forward;
         }
-        if (Input.GetKey(KeyCode.S) || (allowEdgeScrolling && Input.mousePosition.y <= edgeScrollDetectBorderThickness))
+        if (KeyActiveChecker.isActive(GameControlsManager.cameraBack) ||
+            (allowEdgeScrolling && Input.mousePosition.y <= edgeScrollDetectBorderThickness))
         {
             positionDelta -= forward;
         }
-        if (Input.GetKey(KeyCode.A) || (allowEdgeScrolling && Input.mousePosition.x <= edgeScrollDetectBorderThickness))
+        if (KeyActiveChecker.isActive(GameControlsManager.cameraLeft) ||
+            (allowEdgeScrolling && Input.mousePosition.x <= edgeScrollDetectBorderThickness))
         {
             positionDelta -= right;
         }
-        if (Input.GetKey(KeyCode.D) || (allowEdgeScrolling && Input.mousePosition.x >= Screen.width - edgeScrollDetectBorderThickness))
+        if (KeyActiveChecker.isActive(GameControlsManager.cameraRight) ||
+            (allowEdgeScrolling && Input.mousePosition.x >= Screen.width - edgeScrollDetectBorderThickness))
         {
             positionDelta += right;
         }
-        if (Input.GetKey(KeyCode.Q))
+        if (KeyActiveChecker.isActive(GameControlsManager.cameraDown))
         {
             positionDelta += Vector3.down;
         }
-        if (Input.GetKey(KeyCode.E))
+        if (KeyActiveChecker.isActive(GameControlsManager.cameraUp))
         {
             positionDelta += Vector3.up;
         }
 
         // scrolling with mouse
-        if (allowMouseTranslation && Input.GetMouseButton(2))
+        if (allowMouseTranslation && KeyActiveChecker.isActive(GameControlsManager.middleClick))
         {
             if (mouseOverGame)
             {
@@ -236,7 +245,7 @@ public class CameraControl : MonoBehaviour
     {
         Vector3 rotation = Vector3.zero;
 
-        if (allowMouseRotation && Input.GetMouseButton(1)) // right mouse
+        if (allowMouseRotation && KeyActiveChecker.isActive(GameControlsManager.rightClick)) // right mouse
         {
             if (mouseOverGame)
             {

@@ -23,7 +23,7 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1
+  m_AmbientIntensity: 0.5
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
@@ -35,10 +35,10 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0.5
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 170076734}
-  m_IndirectSpecularColor: {r: 0.43632972, g: 0.47471184, b: 0.5147129, a: 1}
+  m_IndirectSpecularColor: {r: 0.3198424, g: 0.35281155, b: 0.39345682, a: 0.5}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -130,6 +130,8 @@ GameObject:
   m_Component:
   - component: {fileID: 111404182}
   - component: {fileID: 111404183}
+  - component: {fileID: 111404185}
+  - component: {fileID: 111404184}
   m_Layer: 0
   m_Name: GameController
   m_TagString: GameController
@@ -163,21 +165,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2d4e690d883b144481ccbd59a3cd510, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxActionPoints: 50
-  actionPoints: 50
   showGUI: 1
   guiMenuWidth: 200
   guiMenuHeight: 300
-  pathfindKeyControl:
-    modifiers:
-      leftAlt: 0
-      leftControl: 0
-      leftShift: 0
-    inputKey: 0
   mouseOverIndicator: {fileID: 0}
   selectionIndicator: {fileID: 0}
-  pathIndicator: {fileID: 0}
-  pathExploredIndicator: {fileID: 0}
+--- !u!114 &111404184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 111404181}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 679be4e844331d24fb0b3133d96b2a9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  doubleKeyTime: 0.25
+  keyInfo:
+    keyCode: 32
+    modifier:
+      leftAlt: 1
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 1
+    isDoubleKey: 0
+--- !u!114 &111404185
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 111404181}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5a1f0403bfc7ae429e16bced73d10c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &170076733
 GameObject:
   m_ObjectHideFlags: 0
@@ -206,7 +231,7 @@ Light:
   serializedVersion: 9
   m_Type: 1
   m_Color: {r: 1, g: 0.97342384, b: 0.9009434, a: 1}
-  m_Intensity: 2
+  m_Intensity: 1.5
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -263,13 +288,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 170076733}
-  m_LocalRotation: {x: 0.08418603, y: -0.25783417, z: 0.022557575, w: 0.96225023}
+  m_LocalRotation: {x: 0.12607859, y: -0.2566048, z: 0.03378265, w: 0.9576622}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 410286354}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 10, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 15, y: -30, z: 0}
 --- !u!1 &410286353
 GameObject:
   m_ObjectHideFlags: 0
@@ -566,7 +591,7 @@ MonoBehaviour:
   gizmoSkip: 5
   regenerate: 0
   regionGenConfig:
-    numberOfTiles: 64000
+    numberOfTiles: 5000
     tileSize: 7.5
     maxElevation: 50
   heightMapConfig:
@@ -605,6 +630,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   doubleClickDelay: 0.3
   mouseButton: 0
+  numberOfClicks: 0
+  timeSinceLastClick: 0
 --- !u!4 &1476058423
 Transform:
   m_ObjectHideFlags: 0
@@ -658,9 +685,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1820646310}
+  - component: {fileID: 1820646311}
   m_Layer: 0
   m_Name: Controls
-  m_TagString: Untagged
+  m_TagString: ControlsRoot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -681,6 +709,369 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1820646311
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1820646309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bea9fe85b74fc54d96d83808984983d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  keyInfos:
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
+  - keyCode: 0
+    modifier:
+      leftAlt: 0
+      leftControl: 0
+      leftShift: 0
+    isKeyDownOnly: 0
+    isDoubleKey: 0
 --- !u!1 &1884929775
 GameObject:
   m_ObjectHideFlags: 0

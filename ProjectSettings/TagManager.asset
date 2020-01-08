@@ -11,6 +11,7 @@ TagManager:
   - NavMeshElement
   - AgentRoot
   - BuildingRoot
+  - ControlsRoot
   layers:
   - Default
   - TransparentFX

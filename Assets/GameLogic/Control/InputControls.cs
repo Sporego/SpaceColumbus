@@ -2,22 +2,29 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using Utilities.EventListeners;
+using Utilities.Events;
 
 namespace InputControls
 {
     [System.Serializable]
     public struct KeyInfo
     {
+        public enum OnKey: byte
+        {
+            Down,
+            Up,
+            Hold
+        }
+
         public KeyCode keyCode;
-        public bool isKeyDownOnly;
+        public OnKey onKey;
         public bool isDoubleKey;
 
-        public KeyInfo(KeyCode keyCode, bool isKeyDownOnly, bool isDoubleKey)
+        public KeyInfo(KeyCode keyCode, OnKey onKey, bool isDoubleKey)
         {
             this.keyCode = keyCode;
-            this.isKeyDownOnly = isKeyDownOnly;
-            this.isDoubleKey = isKeyDownOnly;
+            this.onKey = onKey;
+            this.isDoubleKey = isDoubleKey;
         }
     }
 
@@ -40,11 +47,13 @@ namespace InputControls
     [System.Serializable]
     public static class KeyActiveChecker
     {
-        public static bool isActive(KeyCode keyCode, bool onDown = false)
+        public static bool isActive(KeyCode keyCode, KeyInfo.OnKey onKey = KeyInfo.OnKey.Down)
         {
             bool active;
-            if (onDown)
+            if (onKey == KeyInfo.OnKey.Down)
                 active = Input.GetKeyDown(keyCode);
+            else if (onKey == KeyInfo.OnKey.Up)
+                active = Input.GetKeyUp(keyCode);
             else
                 active = Input.GetKey(keyCode);
 
@@ -53,16 +62,16 @@ namespace InputControls
 
         public static bool isActive(KeyInfo keyInfo)
         {
-            return isActive(keyInfo.keyCode, keyInfo.isKeyDownOnly);
+            return isActive(keyInfo.keyCode, keyInfo.onKey);
         }
     }
 
     [System.Serializable]
     public class KeyActiveEventGenerator : EventGenerator
     {
-        private List<KeyInfo> keys = new List<KeyInfo>();
+        public List<KeyInfo> keys = new List<KeyInfo>();
 
-        public KeyActiveEventGenerator(KeyInfo[] keys)
+        public KeyActiveEventGenerator(KeyInfo[] keys) : base()
         {
             foreach (var key in keys)
                 this.keys.Add(key);
@@ -71,52 +80,36 @@ namespace InputControls
         public KeyActiveEventGenerator(KeyInfo keyInfo) : this(new KeyInfo[] { keyInfo }) { }
 
         public bool isActive(){
-            bool active = false;
+            bool active = true;
             foreach (var key in keys)
                 active &= KeyActiveChecker.isActive(key);
             return active;
         }
 
-        public virtual void Update()
+        public override void Update()
         {
             if (isActive())
             {
-                string s = "[";
-                foreach (var key in keys)
-                    s += key + " ";
-                s += "]";
-                Debug.Log(s + " KEYS EVENT");
-                OnEvent();
+                OnEvent(null);
             }
         }
     }
 
     [System.Serializable]
-    public abstract class KeyActiveEventListener : EventListener
+    public abstract class KeyActiveEventListener : IEventListener
     {
-        public KeyInfo keyInfo { get; }
+        public List<KeyInfo> keys = new List<KeyInfo>();
 
-        public KeyActiveEventListener(KeyInfo keyInfo)
+        public KeyActiveEventListener(KeyInfo[] keys)
         {
-            this.keyInfo = keyInfo;
+            foreach (var key in keys)
+                this.keys.Add(key);
         }
 
-        public abstract void Notify();
-    }
+        public KeyActiveEventListener(KeyInfo keyInfo) : this(new KeyInfo[] { keyInfo }) { }
 
-    public class DoubleKeyPressEventListener : KeyActiveEventListener
-    {
-        public float doubleKeyTime { get; }
-
-        public DoubleKeyPressEventListener(KeyInfo keyInfo, float doubleKeyTime) : base(keyInfo)
-        {
-            this.doubleKeyTime = doubleKeyTime;
-        }
-
-        override public void Notify()
-        {
-            Debug.Log(this.keyInfo + " DOUBLE KEYDOWN EVENT");
-        }
+        // extend from this class and override this method to perform some action
+        public abstract void Notify(GameEvent gameEvent);
     }
 
     [System.Serializable]
@@ -125,7 +118,7 @@ namespace InputControls
         private float doubleKeyTime;
         private float timeSinceLastPress = 0f;
 
-        public DoubleKeyPressEventGenerator(KeyInfo keyInfo, float doubleKeyTime) : base(keyInfo)
+        public DoubleKeyPressEventGenerator(KeyInfo keyInfo, float doubleKeyTime = 0.2f) : base(keyInfo)
         {
             this.doubleKeyTime = doubleKeyTime;
         }
@@ -142,7 +135,7 @@ namespace InputControls
 
                 if (!timeout)
                 {
-                    OnEvent();
+                    OnEvent(null);
                 }
             }
         }

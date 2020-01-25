@@ -32,10 +32,10 @@ namespace Regions
         [Range(1, maxNumberOfTiles)]
         public int numberOfTiles;
 
-        [Range(0.001f, 10f)]
+        [Range(0.001f, 100f)]
         public float tileSize;
 
-        [Range(1, 100)]
+        [Range(1, 250)]
         public int maxElevation;
 
         public RegionGenConfig() { }

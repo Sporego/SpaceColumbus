@@ -7,10 +7,6 @@ namespace Navigation
 {
     public class NavMeshGenerator : MonoBehaviour
     {
-        private static string NavMeshRootObjectTag = "NavMeshRoot";
-
-        private GameSession gameSession = null;
-
         private GameObject navMeshRoot = null;
 
         private List<GameObject> navMeshElements = new List<GameObject>(); // TODO: generate only using nav mesh elements
@@ -19,10 +15,6 @@ namespace Navigation
 
         private void Awake()
         {
-            if (gameSession == null)
-            {
-                gameSession = GameObject.FindGameObjectWithTag(StaticGameDefs.GameSessionTag).GetComponent<GameSession>();
-            }
             if (navMeshRoot == null)
             {
                 navMeshRoot = this.gameObject;
@@ -31,6 +23,8 @@ namespace Navigation
 
         public void BuildNavMesh()
         {
+            Awake();
+
             // remove existing navMeshSurfaces
             foreach (NavMeshSurface navMeshSurface in navMeshRoot.GetComponents<NavMeshSurface>())
                 Destroy(navMeshSurface);
@@ -45,6 +39,11 @@ namespace Navigation
 
                 NavMeshBuildSettings actualSettings = navMeshSurface.GetBuildSettings();
                 navMeshSurface.useGeometry = NavMeshCollectGeometry.RenderMeshes; // or you can use RenderMeshes
+                //navMeshSurface.layerMask = true;
+
+                // remove existing agents from the navmesh layermask
+                navMeshSurface.layerMask -= LayerMask.GetMask("Agents");
+                navMeshSurface.layerMask -= LayerMask.GetMask("Ignore Raycast");
 
                 navMeshSurface.BuildNavMesh();
             }

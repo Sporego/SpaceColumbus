@@ -108,7 +108,7 @@ public class CameraControl : MonoBehaviour
         region = gameSession.getRegion();
 
         restrictionCenterPoint = new Vector3(0, 0, 0); // GameControl.gameSession.humanPlayer.getPos();
-        viewCenterPoint = region.getTileAt(restrictionCenterPoint).pos;
+        viewCenterPoint = new Vector3(0, 0, 0);
 
         mousePositionAtRightClickDown = Input.mousePosition;
         mousePositionAtMiddleClickDown = Input.mousePosition;

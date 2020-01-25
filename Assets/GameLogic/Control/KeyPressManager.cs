@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using Utilities.EventListeners;
+using Utilities.Events;
 
 namespace InputControls
 {
     [System.Serializable]
     public class KeyPressManager : MonoBehaviour
     {
-        private Dictionary<KeyInfo, KeyActiveEventGenerator> keyActiveEventGenerators = new Dictionary<KeyInfo, KeyActiveEventGenerator>();
+        private Dictionary<List<KeyInfo>, KeyActiveEventGenerator> keyActiveEventGenerators = new Dictionary<List<KeyInfo>, KeyActiveEventGenerator>();
 
         public void Update()
         {
@@ -21,21 +21,29 @@ namespace InputControls
 
         public KeyActiveEventGenerator GetKeyGenerator(KeyActiveEventListener keyActiveEventListener)
         {
-            KeyInfo keyInfo = keyActiveEventListener.keyInfo;
-            if (keyActiveEventGenerators.ContainsKey(keyInfo))
+            var keys = keyActiveEventListener.keys;
+            keys.Sort();  // arbitrary built-in sort function; this might not be doing what we expect it does
+
+            if (keyActiveEventGenerators.ContainsKey(keys))
             {
-                return keyActiveEventGenerators[keyInfo];
+                return keyActiveEventGenerators[keys];
             }
             else
             {
+                Debug.Log("Making a new listener for key " + keyActiveEventListener.keys[0].keyCode);
                 KeyActiveEventGenerator keyActiveEventGenerator;
-                if (keyInfo.isDoubleKey)
-                    keyActiveEventGenerator = new DoubleKeyPressEventGenerator(keyInfo,
-                        ((DoubleKeyPressEventListener)keyActiveEventListener).doubleKeyTime);
-                else
-                    keyActiveEventGenerator = new KeyActiveEventGenerator(keyInfo);
+                if (keys.Count == 1)  // only 1 key
+                {
+                    var key = keys[0];
+                    if (key.isDoubleKey)
+                        keyActiveEventGenerator = new DoubleKeyPressEventGenerator(key);
+                    else
+                        keyActiveEventGenerator = new KeyActiveEventGenerator(key);
+                }
+                else // more than 1 key; can't do double press for multikey inputs
+                    keyActiveEventGenerator = new KeyActiveEventGenerator(keys.ToArray());
 
-                keyActiveEventGenerators.Add(keyInfo, keyActiveEventGenerator);
+                keyActiveEventGenerators.Add(keys, keyActiveEventGenerator);
 
                 return keyActiveEventGenerator;
             }

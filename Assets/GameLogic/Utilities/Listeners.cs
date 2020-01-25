@@ -2,26 +2,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Utilities.EventListeners
+namespace Utilities.Events
 {
-    public interface EventListener
+    public abstract class GameEvent { }
+
+    public interface IEventListener
     {
-        void Notify();
+        void Notify(GameEvent gameEvent);
     }
 
-    public class EventGenerator
+    public abstract class EventGenerator
     {
-        private List<EventListener> eventListeners = new List<EventListener>();
+        protected List<IEventListener> eventListeners { get; }
 
-        public void AddListener(EventListener eventListener)
+        public EventGenerator()
+        {
+            eventListeners = new List<IEventListener>();
+        }
+
+        public void AddListener(IEventListener eventListener)
         {
             eventListeners.Add(eventListener);
         }
 
-        public void OnEvent()
+        public virtual void OnEvent(GameEvent gameEvent)
         {
             foreach (var eventListener in eventListeners)
-                eventListener.Notify();
+                eventListener.Notify(gameEvent);
         }
+
+        public abstract void Update();
     }
 }

@@ -2,7 +2,37 @@
 
 namespace Utilities.Misc
 {
-    public class Tools
+    public static class Samplers
+    {
+        public static Vector3 sampleRandomCosineHemisphere(float u, float v)
+        {
+            return sampleRandomCosineHemisphere(new Vector2(u, v));
+        }
+
+        public static Vector3 sampleRandomCosineHemisphere(Vector2 uv)
+        {
+            uv = 2f * uv - new Vector2(1, 1);
+
+            float theta, r;
+            if (Mathf.Abs(uv.x) > Mathf.Abs(uv.y))
+            {
+                r = uv.x;
+                theta = Mathf.PI / 4f * uv.y / uv.x;
+            }
+            else
+            {
+                r = uv.y;
+                theta = Mathf.PI / 2f - Mathf.PI / 4f * uv.x / uv.y;
+            }
+
+            uv = r * new Vector2(Mathf.Cos(theta), Mathf.Sin(theta));
+
+            float z = Mathf.Sqrt(1f - uv.x * uv.x - uv.y * uv.y);
+            return new Vector3(uv.x, z, uv.y);
+        }
+    }
+
+    public static class Tools
     {
         public static Color hexToColor(string hex)
         {

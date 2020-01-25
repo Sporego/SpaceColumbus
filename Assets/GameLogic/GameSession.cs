@@ -10,30 +10,45 @@ using Regions;
 using SquareRegions;
 using Navigation;
 using RegionModelGenerators;
+using Brains;
 
+using Entities;
 using Utilities.Misc;
+using EntitySelection;
 
 public class GameSession : MonoBehaviour
 {
-    [Range(1, 100000000)]
-    public int seed = 0;
+    public bool DEBUG = false;
+    public bool DEBUG_MAP_GEN = false;
 
+    [Header("Agent Config")]
+    public bool spawnAgents = false;
+    public int numAgentsToSpawn = 1000;
+    public bool spawnAgentRandom = false;
+    public float spawnAgentRandomDistance = 1000f;
+
+    [Header("Region Config")]
+    public bool generateRegion = true;
+    [Range(1, 100000000)] public int seed = 0;
     public bool useRandomSeed;
+    public bool regenerate = false;
 
+    public RegionGenConfig regionGenConfig;
+    public HeightMapConfig heightMapConfig;
+    public FastPerlinNoiseConfig noiseConfig;
+
+    [Header("UI Config")]
     public bool drawGizmos = true;
     [Range(0.001f, 10)]
     public float gizmoSize = 1f;
     [Range(0, 100)]
     public int gizmoSkip = 0;
 
-    public bool regenerate = false;
-
-    public RegionGenConfig regionGenConfig;
-    public HeightMapConfig heightMapConfig;
-    public FastPerlinNoiseConfig noiseConfig;
     // public ErosionConfig erosionConfig;
 
     private Region region;
+
+    private SelectionManager selectionManager;
 
     public void Awake()
     {
@@ -42,20 +57,27 @@ public class GameSession : MonoBehaviour
 
     public void Initialize()
     {
-        Debug.Log("Initializing GameSession");
+        if (DEBUG)
+            return;
 
         this.seed = useRandomSeed ? UnityEngine.Random.Range(int.MinValue, int.MaxValue) : this.seed;
 
-        Debug.Log("Initializing with seed " + this.seed);
+        Debug.Log("Initializing GameSession with seed " + this.seed);
 
-        BuildRegion();
-        BuildRegionView();
+        if (generateRegion)
+        {
+            BuildRegion();
+            BuildRegionView();
+        }
+
+        if (DEBUG_MAP_GEN)
+            return;
+
         BuildNavMeshes();
-        SpawnSimpleAgent();
-        SpawnSimpleAgent();
-        SpawnSimpleAgent();
-        SpawnSimpleAgent();
-        SpawnSimpleAgent();
+
+        if (spawnAgents)
+            for (int i = 0; i < numAgentsToSpawn; i++)
+                SpawnSimpleAgent(spawnAgentRandom);
     }
 
     public void BuildRegion()
@@ -86,22 +108,51 @@ public class GameSession : MonoBehaviour
         navMeshGenerator.BuildNavMesh();
     }
 
-    public void SpawnSimpleAgent()
+    public void SpawnSimpleAgent(Vector3 position)
     {
         GameObject agentRoot = GameObject.FindGameObjectWithTag(StaticGameDefs.AgentRootTag);
 
         GameObject gameRoot = GameObject.FindGameObjectWithTag(StaticGameDefs.GameRootTag);
         GameObject agentPrefab = gameRoot.GetComponent<PrefabManager>().AgentPrefab;
 
-        GameObject agent = GameObject.Instantiate(agentPrefab, agentRoot.transform);
+        GameObject agent = GameObject.Instantiate(agentPrefab, position, agentPrefab.transform.rotation, agentRoot.transform);
+    }
 
-        // set correct height as per game map
-        Vector3 pos = agent.transform.position;
-        pos.y = this.region.getTileAt(new Vector3()).pos.y;
-        agent.transform.position = pos;
+    public void SpawnSimpleAgent(bool random = false)
+    {
+        Vector3 pos;
+        if (random)
+        {
+            Vector2 rc = UnityEngine.Random.onUnitSphere;
+            pos = spawnAgentRandomDistance * new Vector3(rc.x, 0, rc.y);
+        }
+        else {
+            pos = Vector3.zero;
+            pos.y = this.region.getTileAt(new Vector3()).pos.y;
+        }
+        SpawnSimpleAgent(pos);
+    }
 
-        // add nav mesh agent component
-        BasicAgent basicAgent = agent.AddComponent<BasicAgent>();
+    public void MoveSelectedAgents(Vector3 destination)
+    {
+        var selectedObjects = selectionManager.GetSelectedObjects();
+        foreach (var selectedObject in selectedObjects)
+        {
+            var agent = selectedObject.GetComponent<Agent>();
+            if (agent != null)
+                agent.MoveTo(destination);
+        }
+    }
+
+    public void StopSelectedAgents()
+    {
+        var selectedObjects  = selectionManager.GetSelectedObjects();
+        foreach (var selectedObject in selectedObjects)
+        {
+            var agent = selectedObject.GetComponent<Agent>();
+            if (agent != null)
+                agent.Stop();
+        }
     }
 
     public Region getRegion()
@@ -113,10 +164,13 @@ public class GameSession : MonoBehaviour
     void Start()
     {
         Debug.Log("Starting game session.");
+
+        this.selectionManager = GameObject.FindGameObjectWithTag(StaticGameDefs.SelectionManagerTag).GetComponent<SelectionManager>();
     }
 
     public void Update()
     {
+        //SpawnSimpleAgent();
         if (regenerate)
         {
             regenerate = false;

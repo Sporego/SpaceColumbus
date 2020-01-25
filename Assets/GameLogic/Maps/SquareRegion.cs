@@ -99,7 +99,7 @@ namespace SquareRegions
             return new List<Vector2Int>(SquareDirections.Neighbors);
         }
 
-        // unity coordinate system to hexagonal coords\
+        // unity coordinate system to square coords
         override
         protected Vector3 regionWorldCoordToIndex(float x, float y)
         {

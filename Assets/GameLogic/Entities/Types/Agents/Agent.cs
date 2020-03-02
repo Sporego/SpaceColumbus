@@ -8,6 +8,8 @@ using Brains.Movement;
 using Brains.Attack;
 using EntitySelection;
 
+using Entities.Bodies;
+
 namespace Entities
 {
     [RequireComponent(
@@ -16,6 +18,10 @@ namespace Entities
      )]
     public class Agent : Entity
     {
+        HumanoidBody body;
+
+        override public string Name { get { return "Agent"; } }
+
         AgentBrain agentBrain;
 
         public void Awake()
@@ -25,6 +31,8 @@ namespace Entities
 
         void Start()
         {
+            this.body = new HumanoidBody();
+
             var moveBrain = new MoveBrain(this.GetComponent<NavMeshAgent>());
             var attackBrain = new AttackBrain();
 

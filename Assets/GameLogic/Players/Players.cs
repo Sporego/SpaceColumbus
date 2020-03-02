@@ -60,10 +60,9 @@ namespace Players
         public AIPlayer(uint id) : base(id) { }
     }
 
-
     public class PlayerManager
     {
-        List<Player> players;
+        public List<Player> players { get; private set; }
 
         public PlayerManager()
         {
@@ -74,9 +73,14 @@ namespace Players
         {
             this.players.Add(player);
         }
+
+        public Player AddNewPlayer()
+        {
+            Player player = new Player((uint)players.Count);
+            AddNewPlayer(player);
+            return player;
+        }
     }
-
-
 }
 
 

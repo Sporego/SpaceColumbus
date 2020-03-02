@@ -11,6 +11,8 @@ using Utilities.Misc;
 using Utilities.Events;
 using EntitySelection;
 
+using Players;
+
 [AddComponentMenu("Input-Control")]
 public class GameControl : MonoBehaviour
 {
@@ -42,17 +44,27 @@ public class GameControl : MonoBehaviour
 
     #region Unit Selection
     private SelectionManager selectionManager;
-    private bool isSelecting, startedSelection;
+    private GameObject mouseOverObject;
+    private bool isBoxSelecting, startedBoxSelection;
     private Vector2 mousePositionAtSelectionStart, mousePositionAtSelectionEnd;
     #endregion Unit Selection
 
     #endregion
 
-    public class AgentSpawnerControlListener : KeyActiveEventListener
+    public abstract class ControlListener : KeyActiveEventListener
     {
-        GameControl gameControl;
+        protected GameControl gameControl;
 
-        public AgentSpawnerControlListener(GameControl gameControl) : base(GameControlsManager.leftClickDownDouble) { this.gameControl = gameControl; }
+        public ControlListener(GameControl gameControl, KeyInfo keyInfo) : base(keyInfo)
+        {
+            this.gameControl = gameControl;
+        }
+    }
+
+    public class AgentSpawnerControlListener : ControlListener
+    {
+
+        public AgentSpawnerControlListener(GameControl gameControl) : base(gameControl, GameControlsManager.leftClickDownDouble) { }
 
         override public void Notify(GameEvent gameEvent)
         {
@@ -61,11 +73,9 @@ public class GameControl : MonoBehaviour
         }
     }
 
-    public class AgentMoveControlListener : KeyActiveEventListener
+    public class AgentMoveControlListener : ControlListener
     {
-        GameControl gameControl;
-
-        public AgentMoveControlListener(GameControl gameControl) : base(GameControlsManager.rightClickDownDouble) { this.gameControl = gameControl; }
+        public AgentMoveControlListener(GameControl gameControl) : base(gameControl, GameControlsManager.rightClickDownDouble) { }
 
         override public void Notify(GameEvent gameEvent)
         {
@@ -74,11 +84,9 @@ public class GameControl : MonoBehaviour
         }
     }
 
-    public class AgentMoveStopListener : KeyActiveEventListener
+    public class AgentMoveStopListener : ControlListener
     {
-        GameControl gameControl;
-
-        public AgentMoveStopListener(GameControl gameControl) : base(GameControlsManager.agentStopHotkey) { this.gameControl = gameControl; }
+        public AgentMoveStopListener(GameControl gameControl) : base(gameControl, GameControlsManager.agentStopHotkey) { }
 
         override public void Notify(GameEvent gameEvent)
         {
@@ -89,7 +97,7 @@ public class GameControl : MonoBehaviour
 
     void Start()
     {
-        isSelecting = false;
+        isBoxSelecting = false;
         selectionManager = GameObject.FindGameObjectWithTag(StaticGameDefs.SelectionManagerTag).GetComponent<SelectionManager>();
 
         mouseOverWorldPosition = new Vector3();
@@ -136,12 +144,12 @@ public class GameControl : MonoBehaviour
         // If we press the left mouse button, save mouse location and begin selection
         if (KeyActiveChecker.isActive(GameControlsManager.leftClickDown))
         {
-            startedSelection = true;
-            isSelecting = true;
+            startedBoxSelection = true;
+            isBoxSelecting = true;
             mousePositionAtSelectionStart = Input.mousePosition;
         }
 
-        if (isSelecting && KeyActiveChecker.isActive(GameControlsManager.leftClick))
+        if (isBoxSelecting && KeyActiveChecker.isActive(GameControlsManager.leftClick))
         {
             mousePositionAtSelectionEnd = Input.mousePosition;
         }
@@ -149,24 +157,28 @@ public class GameControl : MonoBehaviour
         // If we let go of the left mouse button, end selection
         if (KeyActiveChecker.isActive(GameControlsManager.leftClickUp))
         {
-            isSelecting = false;
+            isBoxSelecting = false;
         }
     }
 
     void ProcessSelectionArea()
     {
-        if (!isSelecting)
-            return;
+        // TODO LIST CRITERIA
+        SelectionCriteria selectionCriteria = new SelectionCriteria(true, false, true, gameSession.currentPlayer.ownership.info);
 
-        if (startedSelection)
+        if (!isBoxSelecting && selectionManager.GetSelectedObjects().Count == 0)
         {
-            selectionManager.Deselect();
-            startedSelection = false;
+            selectionManager.UpdateMouseSelection(mouseOverObject, selectionCriteria);
+            return;
         }
 
-        //SelectionCriteria selectionCriteria = new SelectionCriteria(true, true, false);
+        if (startedBoxSelection)
+        {
+            selectionManager.DeselectAll();
+            startedBoxSelection = false;
+        }
 
-        selectionManager.UpdateSelection(mousePositionAtSelectionStart, mousePositionAtSelectionEnd);
+        selectionManager.UpdateSelected(mousePositionAtSelectionStart, mousePositionAtSelectionEnd, mouseOverObject, selectionCriteria);
     }
 
     private void FixedUpdate()
@@ -192,7 +204,7 @@ public class GameControl : MonoBehaviour
             }
             else
             {
-                ;
+                mouseOverObject = hitObject;
             }
         }
 
@@ -274,7 +286,7 @@ public class GameControl : MonoBehaviour
         if (showGUI)
         {
 
-            if (isSelecting)
+            if (isBoxSelecting)
             {
                 // Create a rect from both mouse positions
                 var rect = UIUtils.GetScreenRect(mousePositionAtSelectionStart, Input.mousePosition);

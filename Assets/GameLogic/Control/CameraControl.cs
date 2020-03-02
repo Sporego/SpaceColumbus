@@ -102,6 +102,8 @@ public class CameraControl : MonoBehaviour
 
     void Start()
     {
+        Camera.main.depthTextureMode = DepthTextureMode.Depth;
+
         transform.position = getCameraPositionPlayerCentered();
 
         gameSession = GameObject.FindGameObjectWithTag(StaticGameDefs.GameSessionTag).GetComponent<GameSession>();

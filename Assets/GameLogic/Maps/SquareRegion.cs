@@ -31,7 +31,6 @@ namespace SquareRegions
             this.tileSize = regionGenConfig.tileSize;
 
             computeTileCenterCoords();
-
             computeElevationParameters();
 
             Debug.Log("Generated square region.");
@@ -59,7 +58,7 @@ namespace SquareRegions
 
                     Vector2 uv = new Vector2(i / 2f / gridRadius, j / 2f / gridRadius);
 
-                    float y = this.regionGenConfig.maxElevation * this.heightMap.getNoiseValueUV(uv.x, uv.y); // get elevation from Noise 
+                    float y = getElevation(uv.x, uv.y);
 
                     // initialize tile
                     // compute tile pos in unity axis coordinates
@@ -70,6 +69,13 @@ namespace SquareRegions
             }
 
             this.tiles = coords;
+        }
+
+        private float getElevation(float x, float y)
+        {
+            // TODO: preprocess elevation here since Noise gets interpolated
+
+            return this.regionGenConfig.maxElevation * this.heightMap.getNoiseValueUV(x, y);
         }
 
         // *** TILE POSITION COMPUTATIONS AND GETTERS *** //

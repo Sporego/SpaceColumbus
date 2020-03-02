@@ -1,0 +1,45 @@
+
+
+1. crystal clusters = one mesh for many crystals to speed up transluency shader (per model grab pass)
+
+    problems: 
+
+        - must find correct root placement for each crystal (3d model + terrain)
+
+        - in shader, for each crystal, need to compute emission from crystal root, but in a cluster dont know where is root, which crystal belong to
+            solution: use y of crystal for light? use center of cluster for light? -> i.e. center crystals are better?
+
+
+2. entity manager / destroy system
+    
+    - must safe guard all other systems:
+        when entity is destroyed, must make sure all other systems dont try to access it
+
+
+3. entity clustering system
+    
+    - helps with finding closest objects
+    - on UPDATE, loop over all entities and cluster entities into squares, look in NxN squares for closest objects based on a <RANGE> parameter
+
+
+4. Region split into multiple mesh objects
+    
+    - merge points must have no gaps
+    - correct navmesh generation
+
+
+5. Health System / Damage
+
+    Dwarf Fortress Injury Types:
+        NONE: No recorded active wounds on the part.
+        MINOR: Any damage that doesn't have functional/structural consequences (might be heavy bleeding, though).
+        INHIBITED: Any muscular, structural, or functional damage, without total loss.
+        FUNCTION LOSS: An important function of the part is completely lost, but the part is structurally sound (or at least partially intact).
+        BROKEN: The part has lost all structural integrity or muscular ability.
+        MISSING: The part is completely gone.
+
+
+6. Entity bodies / materials
+
+
+7. BUG: MoveBrain movement; sometimes, when multiple agents are told to move to X, not all agents actually start moving to X (command ignored).

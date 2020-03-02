@@ -8,6 +8,8 @@ namespace EntitySelection
 {
     public class Selectable : MonoBehaviour
     {
+        public static SelectionManager selectionManager; // this is set by SelectionManager Awake()
+
         public SelectionListener selectionListener { get; private set; }
 
         public GameObject selectionIndicator;
@@ -22,7 +24,7 @@ namespace EntitySelection
 
             selectionIndicator.SetActive(false);
 
-            GameObject.FindGameObjectWithTag(StaticGameDefs.SelectionManagerTag).GetComponent<SelectionManager>().AddSelectable(this);
+            selectionManager.AddSelectable(this);
         }
 
         public void Select()

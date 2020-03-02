@@ -11,22 +11,29 @@ using Players;
 
 namespace Entities
 {
-    public abstract class EntityComponent
+    public interface Named
     {
-        Entity entity;
-
-        public EntityComponent(Entity entity)
-        {
-            this.entity = entity;
-        }
-
-        public abstract void Start();
-        public abstract void ProcessTick();
+        string Name { get; }
     }
 
-    public abstract class Entity : MonoBehaviour
+    //public abstract class EntityComponent
+    //{
+    //    Entity entity;
+
+    //    public EntityComponent(Entity entity)
+    //    {
+    //        this.entity = entity;
+    //    }
+
+    //    public abstract void Start();
+    //    public abstract void ProcessTick();
+    //}
+
+    public abstract class Entity : MonoBehaviour, Named
     {
         public OwnershipInfo ownershipInfo;
+
+        public abstract string Name { get; }
 
         public bool canMove { get; protected set; }
 

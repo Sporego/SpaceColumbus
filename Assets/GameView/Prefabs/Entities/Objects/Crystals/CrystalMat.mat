@@ -13,15 +13,15 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
     - _BumpMap:
-        m_Texture: {fileID: 2800000, guid: dbf5fd5c04eedf2418e86c377cf5b95b, type: 3}
-        m_Scale: {x: 0, y: 0.1}
+        m_Texture: {fileID: 2800000, guid: e6b70229308faa64880eac4945d59f5e, type: 3}
+        m_Scale: {x: 2, y: 2}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
         m_Texture: {fileID: 0}
@@ -56,20 +56,25 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
-        m_Texture: {fileID: 2800000, guid: 1bd55003cb0f6bb478cad0322e3f6b28, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Texture: {fileID: 2800000, guid: eefb2cdb7bf1cf341a8b5a9153c779a7, type: 3}
+        m_Scale: {x: 2, y: 2}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _BumpScale: 5
+    - _BumpScale: 0.16
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
+    - _DistortionAmount: 0.5
+    - _DistortionInfluence: 0.5
     - _DstBlend: 0
-    - _EmissionFalloff: 0.92
-    - _EmissionMultiplier: 0.341
+    - _EmissionFalloff: 1
+    - _EmissionMapInfluence: 0
+    - _EmissionMultiplier: 0.667
+    - _EmissionPower: 1
     - _GlossMapScale: 1
-    - _Glossiness: 0.6
+    - _Glossiness: 0.85
     - _GlossyReflections: 1
-    - _Metallic: 0
+    - _Metallic: 0.35
+    - _MinAngleFactor: 0.1
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.1
@@ -80,6 +85,6 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _Center: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.35049355, g: 0, b: 0.7075472, a: 1}
-    - _EmissionColor: {r: 0.018878397, g: 3.8867924, b: 0, a: 1}
-    - _RootPos: {r: 0, g: 0, b: 0, a: 1}
+    - _Color: {r: 0.35049298, g: 0, b: 0.7075471, a: 1}
+    - _EmissionColor: {r: 0.020349704, g: 3.8867934, b: 0, a: 1}
+    - _RootPos: {r: 0, g: 0, b: 0, a: 0}

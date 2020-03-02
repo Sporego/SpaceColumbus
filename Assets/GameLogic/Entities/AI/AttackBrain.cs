@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using Entities.HealthSystems;
+using Entities.Bodies;
 
 namespace Brains.Attack
 {
@@ -21,6 +21,8 @@ namespace Brains.Attack
     [System.Serializable]
     public class AttackBrain
     {
+        //public static TargetSystem targetSystem;
+
         public AttackVariant attackVariant;
 
         public AttackBrain()

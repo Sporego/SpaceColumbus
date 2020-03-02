@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using System.Xml;
+using System.Collections.Generic;
 
 namespace Utilities.Misc
 {
@@ -150,6 +152,90 @@ namespace Utilities.Misc
             }
 
             return dst;
+        }
+    }
+
+    public static class StatsXMLreader
+    {
+        private static Dictionary<string, XmlDocument> openDocs;
+
+        private static string CurDir = System.IO.Directory.GetCurrentDirectory();
+
+        // path is relative to current directory
+        // ex: path "/assets/xml_defs/stats.xml"
+        public static XmlDocument GetXmlDoc(string path)
+        {
+            if (openDocs.ContainsKey(path))
+                return openDocs[path];
+            else
+                return AddNewXmlDoc(path);
+        }
+
+        public static string GetFieldPathFromStringList(List<string> fields)
+        {
+            string fieldPath = "";
+            foreach (var field in fields)
+            {
+                fieldPath += field;
+            }
+            return fieldPath;
+        }
+
+        public static List<string> getParametersFromXML(string path, List<string> fields)
+        {
+            return getParametersFromXML(GetXmlDoc(path), GetFieldPathFromStringList(fields));
+        }
+
+        public static List<string> getParametersFromXML(string path, string fieldPath)
+        {
+            return getParametersFromXML(GetXmlDoc(path), fieldPath);
+        }
+
+        public static List<string> getParametersFromXML(XmlDocument doc, List<string> fields)
+        {
+            return getParametersFromXML(doc, GetFieldPathFromStringList(fields));
+        }
+
+        public static List<string> getParametersFromXML(XmlDocument doc, string fieldPath)
+        {
+            List<string> strings;
+            XmlNodeList nodes = doc.DocumentElement.SelectNodes("/" + fieldPath);
+            if (nodes != null)
+            {
+                strings = new List<string>();
+                foreach (XmlNode node in nodes)
+                    strings.Add(node.InnerText);
+                return strings;
+            }
+            else
+                return null;
+        }
+
+        public static XmlDocument ReadXmlDocument(string path)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(CurDir + "/" + path);
+            return doc;
+        }
+
+        public static XmlDocument AddNewXmlDoc(string path)
+        {
+            XmlDocument doc = ReadXmlDocument(path);
+            openDocs.Add(path, doc);
+            return doc;
+        }
+
+        public static void ReloadOpenDocs()
+        {
+            foreach (var path in openDocs.Keys)
+            {
+                openDocs[path] = ReadXmlDocument(path);
+            }
+        }
+
+        public static void ClearOpenDocs()
+        {
+            openDocs = new Dictionary<string, XmlDocument>();
         }
     }
 }

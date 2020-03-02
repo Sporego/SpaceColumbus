@@ -197,8 +197,8 @@ public class CrystalGenerator : MonoBehaviour
 
         mesh.SetTriangles(tris.ToArray(), 0);
 
-        //Vector2[] uvs = Unwrapping.GeneratePerTriangleUV(mesh);
-        //mesh.SetUVs(0, new List<Vector2>(uvs));
+        Vector2[] uvs = Unwrapping.GeneratePerTriangleUV(mesh);
+        mesh.SetUVs(0, new List<Vector2>(uvs));
 
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();

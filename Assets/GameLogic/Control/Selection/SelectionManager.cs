@@ -10,6 +10,8 @@ namespace EntitySelection
 {
     public class SelectionManager : MonoBehaviour
     {
+        // TODO: convert this to Singleton -> another local class with single instance; multiple SM MonoBs will still use the same SM
+
         #region Config
         public float timeBetweenSelectionUpdates = 0.05f; // in seconds, minimum allowed Period for updating selection
         #endregion Config
@@ -18,17 +20,22 @@ namespace EntitySelection
         private List<GameObject> currentlySelectedGameObjects { get; set; }
 
         private List<SelectionListener> selectionListeners = new List<SelectionListener>();
-        private List<bool> isListenerSelected = new List<bool>();
 
-        private bool dirty = true;
         private Vector3[] selectionScreenCoords = new Vector3[2];
 
         private float timeSinceLastSelectionUpdate;
 
+        private GameObject mouseOverObject;
+
+        public void Awake()
+        {
+            Selectable.selectionManager = this; // set the static def
+        }
+
         public void Start()
         {
             timeSinceLastSelectionUpdate = timeBetweenSelectionUpdates;
-            UpdateSelected();
+            ProcessSelected();
             //SelectionManager.selectionPrefab = GameObject.FindGameObjectWithTag(StaticGameDefs.GameRootTag).GetComponent<PrefabManager>().SelectionPrefab;
         }
 
@@ -36,7 +43,6 @@ namespace EntitySelection
         {
             var selectionListener = selectable.GetComponent<Selectable>().selectionListener;
             this.selectionListeners.Add(selectionListener);
-            this.isListenerSelected.Add(false);
         }
 
         public List<SelectionListener> GetSelectedListeners() { return this.currentlySelectedListeners; }
@@ -50,79 +56,126 @@ namespace EntitySelection
             return this.currentlySelectedGameObjects;
         }
 
-        private void UpdateSelected()
+        private void ProcessSelected()
         {
             List<SelectionListener> selectedListeners = new List<SelectionListener>();
             List<GameObject> selectedObjects = new List<GameObject>();
 
-            for (int i = 0; i < selectionListeners.Count; i++)
+            foreach (var selectionListener in selectionListeners)
             {
-                if (isListenerSelected[i])
+                var selectable = selectionListener.selectable;
+                if (selectable.isSelected)
                 {
-                    var listener = selectionListeners[i];
-                    selectedListeners.Add(listener);
-                    selectedObjects.Add(listener.selectable.gameObject);
+                    selectedListeners.Add(selectionListener);
+                    selectedObjects.Add(selectionListener.selectable.gameObject);
                 }
+
             }
 
             this.currentlySelectedListeners = selectedListeners;
             this.currentlySelectedGameObjects = selectedObjects;
         }
 
-        public void SetDirty(bool dirty) { this.dirty = dirty; }
-        public void SetDirty() { SetDirty(true); }
+        //public void SetDirty(bool dirty) { this.dirty = dirty; }
+        //public void SetDirty() { SetDirty(true); }
 
-        public void Deselect()
+        public void DeselectAll()
+        {
+            foreach (var selectionListener in selectionListeners)
+            {
+                var selectable = selectionListener.selectable;
+                if (selectable.isSelected)
+                    selectable.Deselect();
+            }
+        }
+
+        public Selectable[] GetSelectables(GameObject gameObject)
+        {
+            if (gameObject is null)
+                return new Selectable[] { };
+            return gameObject.GetComponentsInParent<Selectable>();
+        }
+
+        public void Deselect(GameObject gameObject)
+        {
+            foreach (var selectable in GetSelectables(gameObject))
+            {
+                if (selectable.isSelected)
+                    selectable.Deselect();
+            }
+        }
+
+        public void Select(GameObject gameObject, SelectionCriteria selectionCriteria=null)
+        {
+            foreach (var selectable in GetSelectables(gameObject))
+            {
+                if (!selectable.isSelected && SelectionCriteria.isValidSelection(selectionCriteria, selectable))
+                    selectable.Select();
+            }
+        }
+
+        public void UpdateMouseSelection(GameObject mouseOverObject, SelectionCriteria selectionCriteria)
+        {
+            if (this.mouseOverObject == mouseOverObject)
+                return;
+
+            Deselect(this.mouseOverObject);
+            this.mouseOverObject = mouseOverObject;
+            Select(this.mouseOverObject, selectionCriteria);
+        }
+
+        public void UpdateSelected(Vector3 s1, Vector3 s2, GameObject mouseOverObject, SelectionCriteria selectionCriteria = null)
+        {
+            Selectable[] selectables = mouseOverObject.GetComponentsInParent<Selectable>();
+            foreach (var selectable in selectables)
+            {
+                if (SelectionCriteria.isValidSelection(selectionCriteria, selectable))
+                    selectable.Select();
+            }
+
+            if (CheckDirty(s1, s2))
+            {
+                // update controls vars
+                timeSinceLastSelectionUpdate = 0f;
+
+                UpdateBoxSelection(s1, s2, selectionCriteria);
+                ProcessSelected();
+            }
+        }
+
+        public void UpdateBoxSelection(Vector3 s1, Vector3 s2, SelectionCriteria selectionCriteria = null)
         {
             for (int i = 0; i < selectionListeners.Count; i++)
             {
-                if (isListenerSelected[i])
+                var selectionListener = selectionListeners[i];
+                var selectable = selectionListener.selectable;
+
+                if (selectionCriteria != null && SelectionCriteria.isValidSelection(selectionCriteria, selectable))
                 {
-                    selectionListeners[i].Notify(new SelectionEvent(false));
-                    isListenerSelected[i] = false;
-                }
-            }
-        }
-
-        public void UpdateSelection(Vector3 s1, Vector3 s2)
-        {
-            timeSinceLastSelectionUpdate += Time.deltaTime;
-
-            CheckDirty(s1, s2);
-            if (dirty)
-            {
-                // update controls vars
-                dirty = false;
-                timeSinceLastSelectionUpdate = 0f;
-
-                for (int i = 0; i < selectionListeners.Count; i++)
-                {
-                    var selectionListener = selectionListeners[i];
-
-                    Vector3 p = Camera.main.WorldToScreenPoint(selectionListener.selectable.transform.position);
-
-                    // check if within selection
-                    bool c1 = s1.x <= p.x && p.x <= s2.x;
-                    bool c2 = s1.y <= p.y && p.y <= s2.y;
-                    bool c3 = s1.x >= p.x && p.x >= s2.x;
-                    bool c4 = s1.y >= p.y && p.y >= s2.y;
-                    // (c1 && c2) || (c3 && c4) || (c3 && c2) || (c1 && c4) simplifies to
-                    bool selected = (c1 || c3) && (c2 || c4);
+                    Vector3 p = Camera.main.WorldToScreenPoint(selectable.transform.position);
+                    Vector2 s1p = Vector2.Min(s1, s2);
+                    Vector2 s2p = Vector2.Max(s1, s2);
+                    bool selected = s1p.x <= p.x && p.x <= s2p.x && s1p.y <= p.y && p.y <= s2p.y;
 
                     // update and notify only selection changes
-                    if (isListenerSelected[i] != selected)
+                    if (selectable.isSelected != selected)
                     {
                         selectionListener.Notify(new SelectionEvent(selected));
-                        isListenerSelected[i] = selected;
                     }
                 }
-
-                UpdateSelected();
+                else
+                {
+                    // not valid selection
+                }
             }
         }
 
-        private void CheckDirty(Vector3 s1, Vector3 s2)
+        private bool CheckDirty(Vector3 s1, Vector3 s2)
         {
+            bool dirty = false;
+
+            timeSinceLastSelectionUpdate += Time.deltaTime;
+
             List<Vector3> selectionScreenCoordsNew = new List<Vector3>() { s1, s2 };
             selectionScreenCoordsNew = selectionScreenCoordsNew.OrderBy(v => v.x).ToList();
 
@@ -133,7 +186,9 @@ namespace EntitySelection
                 selectionScreenCoords[1] = selectionScreenCoordsNew[1];
             }
 
-            dirty &= timeSinceLastSelectionUpdate >= timeBetweenSelectionUpdates;
+            dirty |= timeSinceLastSelectionUpdate >= timeBetweenSelectionUpdates;
+
+            return dirty;
         }
     }
 }

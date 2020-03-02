@@ -9,6 +9,8 @@ namespace Entities
     [RequireComponent(typeof(NavMeshObstacle), typeof(BoxCollider))]
     public class Structure : Entity
     {
+        override public string Name { get { return "Structure"; } }
+
         private void Awake()
         {
             this.entityType = EntityType.Building;
@@ -24,8 +26,4 @@ namespace Entities
 
         }
     }
-
 }
-
-
-

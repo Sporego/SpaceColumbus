@@ -21,12 +21,17 @@ namespace EntitySelection
             this.ownership = ownership;
         }
 
-        public bool isValidSelection(Selectable selectable)
+        public static bool isValidSelection(SelectionCriteria criteria, Selectable selectable)
         {
-            // TODO implement this
             bool valid = true;
-            valid &= isAgent == StaticGameDefs.IsAgent(selectable.gameObject);
-            valid &= isBuilding == StaticGameDefs.IsBuilding(selectable.gameObject);
+
+            if (criteria is null)
+                return valid;
+
+            // TODO implement this
+
+            valid &= criteria.isAgent == StaticGameDefs.IsAgent(selectable.gameObject);
+            valid &= criteria.isBuilding == StaticGameDefs.IsBuilding(selectable.gameObject);
             //valid &= isControlable != selectable.gameObject.GetComponent<Owner>();
 
             return valid;
@@ -54,7 +59,8 @@ namespace EntitySelection
 
         public void Notify(GameEvent gameEvent)
         {
-            if (((SelectionEvent)gameEvent).isSelected)
+            var selectionEvent = (SelectionEvent)gameEvent;
+            if (selectionEvent.isSelected)
                 selectable.Select();
             else
                 selectable.Deselect();

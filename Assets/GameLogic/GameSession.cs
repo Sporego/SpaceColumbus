@@ -8,13 +8,15 @@ using HeightMapGenerators;
 
 using Regions;
 using SquareRegions;
-using Navigation;
 using RegionModelGenerators;
-using Brains;
 
 using Entities;
+using Navigation;
+
 using Utilities.Misc;
 using EntitySelection;
+
+using Players;
 
 public class GameSession : MonoBehaviour
 {
@@ -50,8 +52,14 @@ public class GameSession : MonoBehaviour
 
     private SelectionManager selectionManager;
 
+    private PlayerManager playerManager;
+    public Player currentPlayer { get; private set; }
+
     public void Awake()
     {
+        playerManager = new PlayerManager();
+        currentPlayer = playerManager.AddNewPlayer();
+
         Initialize();
     }
 

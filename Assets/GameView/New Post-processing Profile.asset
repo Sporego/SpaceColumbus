@@ -101,13 +101,41 @@ MonoBehaviour:
     value: 8
   maximumMarchDistance:
     overrideState: 1
-    value: 250
+    value: 100
   distanceFade:
     overrideState: 0
     value: 0.5
   vignette:
     overrideState: 0
     value: 0.5
+--- !u!114 &-4058095480251404738
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 556797029e73b2347956b6579e77e05b, type: 3}
+  m_Name: DepthOfField
+  m_EditorClassIdentifier: 
+  active: 0
+  enabled:
+    overrideState: 1
+    value: 1
+  focusDistance:
+    overrideState: 1
+    value: 17.54
+  aperture:
+    overrideState: 1
+    value: 8.8
+  focalLength:
+    overrideState: 1
+    value: 278
+  kernelSize:
+    overrideState: 1
+    value: 3
 --- !u!114 &-2855718688410921159
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -126,19 +154,19 @@ MonoBehaviour:
     value: 1
   intensity:
     overrideState: 1
-    value: 0.25
+    value: 2
   threshold:
     overrideState: 1
     value: 0.9
   softKnee:
-    overrideState: 0
+    overrideState: 1
     value: 0.5
   clamp:
-    overrideState: 0
-    value: 65472
+    overrideState: 1
+    value: 2
   diffusion:
-    overrideState: 0
-    value: 7
+    overrideState: 1
+    value: 5.42
   anamorphicRatio:
     overrideState: 0
     value: 0
@@ -1486,6 +1514,7 @@ MonoBehaviour:
   - {fileID: -1951366933780495816}
   - {fileID: 3757327318185971639}
   - {fileID: 8410943403966304265}
+  - {fileID: -4058095480251404738}
 --- !u!114 &3757327318185971639
 MonoBehaviour:
   m_ObjectHideFlags: 3

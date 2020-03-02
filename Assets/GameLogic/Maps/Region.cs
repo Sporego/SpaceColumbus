@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Regions
 {
-
     public class Tile
     {
         public Vector3 pos;
@@ -53,7 +52,7 @@ namespace Regions
         protected float regionSize;
         protected float center;
 
-        protected float waterLevelElevation;
+        //protected float waterLevelElevation;
         protected float minElevation, maxElevation, avgElevation;
 
         public Tile[,] tiles;

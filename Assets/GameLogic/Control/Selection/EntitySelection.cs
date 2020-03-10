@@ -48,7 +48,7 @@ namespace EntitySelection
         }
     }
 
-    public class SelectionListener : IEventListener
+    public class SelectionListener : IEventListener<SelectionEvent>
     {
         public Selectable selectable { get; }
 
@@ -57,9 +57,8 @@ namespace EntitySelection
             this.selectable = gameObject.GetComponent<Selectable>();
         }
 
-        public void Notify(GameEvent gameEvent)
+        public void Notify(SelectionEvent selectionEvent)
         {
-            var selectionEvent = (SelectionEvent)gameEvent;
             if (selectionEvent.isSelected)
                 selectable.Select();
             else

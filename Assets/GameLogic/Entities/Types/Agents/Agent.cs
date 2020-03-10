@@ -18,7 +18,7 @@ namespace Entities
      )]
     public class Agent : Entity
     {
-        HumanoidBody body;
+        Body body;
 
         override public string Name { get { return "Agent"; } }
 
@@ -31,7 +31,7 @@ namespace Entities
 
         void Start()
         {
-            this.body = new HumanoidBody();
+            this.body = Body.HumanoidBody;
 
             var moveBrain = new MoveBrain(this.GetComponent<NavMeshAgent>());
             var attackBrain = new AttackBrain();

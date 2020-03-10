@@ -2,75 +2,144 @@
 using UnityEditor;
 using System.Collections.Generic;
 
-using Utilities.Misc;
-
 using Entities.Bodies.Damages;
 using Entities.Bodies.Injuries;
 using Entities.Bodies.Health;
+using System;
 
 namespace Entities.Bodies
 {
-    public abstract class Body : Named, IWithInjuryState
+    public class BodyPart : INamed, IWithInjuryState, IDamageable
     {
-        public BodyPartBase bodyPartBase;
+        public HPSystem hpSystem = null;
 
-        public abstract string Name { get; }
+        public string Name { get; set; }
 
-        public abstract EInjuryState GetInjuryState();
-    }
+        public string NameCustom { get; set; }
 
-    public abstract class BodyPart : Named, IWithInjuryState
-    {
-        public HPSystem hpSystem;
+        public float Size { get; set; }
 
-        public abstract string Name { get; }
+        public bool IsDamageable { get { return this.hpSystem != null; } }
 
-        public EInjuryState InjuryState { get; private set; }
+        public BodyPart(string name, float size)
+        {
+            this.Name = name;
+            this.NameCustom = name;
+            this.Size = size;
+        }
 
-        public BodyPart(HPSystem hpSystem)
+        public BodyPart(string name, float size, HPSystem hpSystem) : this(name, size)
         {
             this.hpSystem = hpSystem;
         }
 
+        public BodyPart(BodyPart bodyPart) : this(
+            new string(bodyPart.Name.ToCharArray()),
+            bodyPart.Size,
+            (bodyPart.hpSystem == null) ? null : new HPSystem(bodyPart.hpSystem)
+            ) { }
+
         public virtual EInjuryState GetInjuryState()
         {
-            return InjuryState;
+            throw new System.NotImplementedException();
+        }
+
+        public virtual void TakeDamage(Damage damage)
+        {
+            if (IsDamageable)
+                hpSystem.TakeDamage(damage);
+        }
+
+        public virtual BodyPart Clone()
+        {
+            return new BodyPart(this);
         }
     }
 
-    // a body part that has other body parts attached to it
-    public abstract class BodyPartBase : BodyPart
+    public class BodyPartContainer : BodyPart
     {
         public List<BodyPart> bodyParts { get; private set; }
 
-        public BodyPartBase(HPSystem hpSystem) : base(hpSystem)
+        public BodyPartContainer(string name, float size, HPSystem hpSystem) : base(name, size, hpSystem)
         {
-            bodyParts = new List<BodyPart>();
+            this.bodyParts = new List<BodyPart>();
         }
 
-        public BodyPart AddBodyPart(BodyPart bodyPart)
+        public BodyPartContainer(BodyPart container) : base(container)
+        {
+            this.bodyParts = new List<BodyPart>();
+        }
+
+        public void AddBodyPart(BodyPart bodyPart)
         {
             this.bodyParts.Add(bodyPart);
-            return bodyPart;
         }
 
-        override public EInjuryState GetInjuryState()
+        override public void TakeDamage(Damage damage)
         {
-            return GetInjuryState(this.bodyParts);
+            if (IsDamageable)
+                hpSystem.TakeDamage(damage);
+
+            // TODO: distribute damage of contained bodyparts
+            //foreach (var bodyPart in bodyParts)
+            //    BodyPart.take
         }
 
-        // new method for getting the overall injury state given all body parts
-        public abstract EInjuryState GetInjuryState(List<BodyPart> bodyParts);
+        override public BodyPart Clone()
+        {
+            return new BodyPartContainer(this);
+        }
+    }
 
-        //public EInjuryState GetInjuryState(List<BodyPart> bodyParts)
-        //{
-        //    EInjuryState globalInjuryState = EInjuryState.None;
-        //    foreach (var bodyPart in this.bodyParts)
-        //    {
-        //        globalInjuryState = InjuryStates.GetWorstInjuryState(globalInjuryState, bodyPart.GetInjuryState());
-        //    }
-        //    return globalInjuryState;
-        //}
+    public class Body : INamed, IWithInjuryState, IDamageable
+    {
+        List<BodyPart> bodyParts;
+
+        public Body()
+        {
+            this.Name = "Body";
+            this.bodyParts = new List<BodyPart>();
+        }
+
+        public Body(string name) : this()
+        {
+            this.Name = name;
+        }
+
+        public Body(Body body) : this(body.Name)
+        {
+            foreach (var bodyPart in body.bodyParts)
+                this.bodyParts.Add(bodyPart.Clone());
+        }
+
+        public void AddBodyParts(BodyPart bodyPart)
+        {
+            AddBodyParts(new List<BodyPart>() { bodyPart });
+        }
+
+        public void AddBodyParts(List<BodyPart> bodyParts)
+        {
+            foreach (var bodyPart in bodyParts)
+                this.bodyParts.Add(bodyPart);
+        }
+
+        public string Name { get; set; }
+
+        public EInjuryState GetInjuryState()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void TakeDamage(Damage damage)
+        {
+            throw new System.NotImplementedException();
+        }
+        public Body Clone()
+        {
+            return new Body(this);
+        }
+
+        public static Body HumanoidBody { get { return BodyPartFactory.HumanoidBody; } }
     }
 }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Text;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,66 +10,79 @@ using Entities.Bodies.Damages;
 
 namespace Entities.Bodies.Health
 {
-    public class HPSystemEvent : GameEvent
+    public class HpSystemEvent : GameEvent
     {
-        public int HP;
+        public readonly HPSystem hpSystem;
+        public readonly List<Damage> damages;
 
-        public HPSystemEvent(int HP) { this.HP = HP; }
-
-        public HPSystemEvent(Damage damage, DamageResistance damageResistance)
+        public HpSystemEvent(HPSystem hpSystem, List<Damage> damages)
         {
-            // TODO
-            this.HP = 1; 
+            this.hpSystem = hpSystem;
+            this.damages = damages;
         }
     }
 
-    public class HPSystem : IEventListener
+    public class HpSystemObserver : IEventListener<HpSystemEvent>
     {
-        private int HP;
-
-        public DamageResistance damageResistance { get; private set; }
-
-        public HPSystem(int HP)
+        public void Notify(HpSystemEvent hpSystemEvent)
         {
-            this.HP = HP;
-            this.damageResistance = new DamageResistance(DamageType.Blunt, 0);
-        }
+            // TODO: update UI, etc
 
-        public void Notify(GameEvent gameEvent)
-        {
-            ApplyDamage(((HPSystemEvent)gameEvent).HP);
-        }
-
-        public void ApplyDamage(int HP)
-        {
-            this.HP -= HP;
+            StringBuilder sb = new StringBuilder();
+            sb.Append("HpSystemEvent: " + hpSystemEvent.hpSystem.HpPrev + "->" + hpSystemEvent.hpSystem.HpCurrent + "HP:");
+            foreach (var damage in hpSystemEvent.damages)
+                sb.Append("\t" + Damage.DamageType2Str(damage.damageType) + " damage with " + damage.amount + " total amount;");
+            Debug.Log("HpSystemEvent: " + sb.ToString());
         }
     }
 
-    public static class HPSystemFactory
+    public class HPSystem : EventGenerator<HpSystemEvent>, IDamageable
     {
-        public static HPSystem GetHPSystem(int HP, EEntityMaterial material)
+        private int HpBase;
+
+        // always between 0 and 1
+        public float Health { get; private set; }
+
+        public int HpCurrent { get { return Mathf.RoundToInt(Health * HpBase); } }
+        public int HpPrev { get; private set; }
+
+        public List<DamageMultiplier> damageMultipliers { get; private set; }
+
+        public HPSystem(int HpBase)
         {
-            DamageResistance damageResistance;
-            // TODO
-            if (material == EEntityMaterial.Flesh)
-            {
+            this.Health = 1f;
+            this.HpBase = HpBase;
+            this.HpPrev = HpBase;
+            this.damageMultipliers = new List<DamageMultiplier>();
+        }
 
-            }
-            else if (material == EEntityMaterial.Metal)
-            {
+        public HPSystem(int HpBase, List<DamageMultiplier> damageMultipliers) : this(HpBase)
+        {
+            foreach (var mult in damageMultipliers)
+                this.damageMultipliers.Add(new DamageMultiplier(mult));
+        }
 
-            }
-            else if (material == EEntityMaterial.Wood)
-            {
+        public HPSystem(int HpBase, DamageMultiplier damageMultiplier) : this(HpBase, new List<DamageMultiplier>() { damageMultiplier }) { }
 
-            }
-            else
-            {
-                
-            }
 
-            return new HPSystem(HP);
+        public HPSystem(HPSystem hpSystem) : this(hpSystem.HpBase, hpSystem.damageMultipliers)
+        {
+            this.HpPrev = hpSystem.HpPrev;
+            this.Health = hpSystem.Health;
+        }
+
+        public void TakeDamage(Damage damage)
+        {
+            TakeDamage(new List<Damage>() { damage });
+        }
+
+        public void TakeDamage(List<Damage> damages)
+        {
+            this.HpPrev = HpCurrent;
+            List<Damage> damagesAfterModifier = DamageMultiplier.GetDamageAfterMultiplier(damages, damageMultipliers);
+            float totalDamage = Damage.GetTotalDamage(damagesAfterModifier);
+            this.Health -= totalDamage / HpBase;
+            OnEvent(new HpSystemEvent(this, damagesAfterModifier));
         }
     }
 }

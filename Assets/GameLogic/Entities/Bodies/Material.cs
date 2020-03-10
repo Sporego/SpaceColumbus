@@ -1,45 +1,80 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System;
+using System.Collections.Generic;
+
+using Utilities.XmlReader;
+using Utilities.Misc;
+
+using Entities;
+using Entities.Bodies.Damages;
+
 
 namespace Entities.Materials
 {
-    public enum EEntityMaterial
+    // TODO: could/should this be a ScriptableObject?
+    public class EntityMaterial : INamed
     {
-        Flesh,
-        Bone,
-        Metal,
-        Wood,
-    }
+        #region XmlDefs
+        private const string MaterialsXmlPath = "Assets/Defs/materials.xml";
 
-    public class EntityMaterial : ScriptableObject
-    {
-        EEntityMaterial material;
-        public float durability;
-        public float hardness;
-        public float restoration;
-        public float flamability;
+        private const string RootField = "root";
 
-        public EntityMaterial(float durability, float hardness, float restoration, float flamability)
+        private const string HardnessField = "Hardness";
+        private const string RestorationField = "Restoration";
+        private const string FlamabilityField = "Flammability";
+        private const string DamageMultipliersField = "DamageMultipliers";
+
+        private static XmlReader MaterialXmlReader = new XmlReader(MaterialsXmlPath);
+        #endregion XmlDefs
+
+        public float Hardness { get; private set; }
+        public float Restoration { get; private set; }
+        public float Flamability { get; private set; }
+        public List<DamageMultiplier> DamageMultipliers;
+
+        public string Name { get; private set; }
+
+        private EntityMaterial(string Name)
         {
-            this.durability = durability;
-            this.hardness = hardness;
-            this.restoration = restoration;
-            this.flamability = flamability;
+            this.Name = Name;
+            InitializeFromXml();
         }
-    }
 
-    public class Flesh : EntityMaterial
-    {
-        public Flesh() : base(0.3f, 0.25f, 0.5f, 0.75f) { }
-    }
+        private void InitializeFromXml()
+        {
+            this.Hardness = MaterialXmlReader.getFloat(new List<string>() { RootField, this.Name, HardnessField });
+            this.Restoration = MaterialXmlReader.getFloat(new List<string>() { RootField, this.Name, RestorationField });
+            this.Flamability = MaterialXmlReader.getFloat(new List<string>() { RootField, this.Name, FlamabilityField });
+            InitializeDamageMultipliersFromXml();
+        }
 
-    public class Metal : EntityMaterial
-    {
-        public Metal() : base(0.8f, 0.8f, 0.01f, 0.01f) { }
-    }
+        private void InitializeDamageMultipliersFromXml()
+        {
+            this.DamageMultipliers = new List<DamageMultiplier>();
 
-    public class Wood : EntityMaterial
-    {
-        public Wood() : base(0.6f, 0.6f, 0.05f, 0.95f) { }
+            foreach (var damageType in Damage.DamageTypes)
+            {
+                try
+                {
+                    // try read damage type multipliers from xml file
+                    float multiplier = MaterialXmlReader.getFloat(
+                        new List<string>() { RootField, this.Name, DamageMultipliersField, Damage.DamageType2Str(damageType) }
+                        );
+                    this.DamageMultipliers.Add(new DamageMultiplier(damageType, multiplier));
+                }
+                catch (Exception e)
+                {
+                    this.DamageMultipliers.Add(new DamageMultiplier(damageType, 1f));
+                }
+            }
+        }
+
+        public static EntityMaterial GetMaterial(string name) { return new EntityMaterial(name); }
+        public static EntityMaterial Flesh { get { return new EntityMaterial("Flesh"); } }
+        public static EntityMaterial Bone { get { return new EntityMaterial("Bone"); } }
+        public static EntityMaterial Steel { get { return new EntityMaterial("Steel"); } }
+        public static EntityMaterial Plastic { get { return new EntityMaterial("Plastic"); } }
+        public static EntityMaterial Wood { get { return new EntityMaterial("Wood"); } }
+        public static EntityMaterial Stone { get { return new EntityMaterial("Stone"); } }
     }
 }

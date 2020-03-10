@@ -11,37 +11,24 @@ using Players;
 
 namespace Entities
 {
-    public interface Named
+    public interface INamed
     {
         string Name { get; }
     }
 
-    //public abstract class EntityComponent
-    //{
-    //    Entity entity;
+    public enum EntityType : byte
+    {
+        Building,
+        Agent
+    }
 
-    //    public EntityComponent(Entity entity)
-    //    {
-    //        this.entity = entity;
-    //    }
-
-    //    public abstract void Start();
-    //    public abstract void ProcessTick();
-    //}
-
-    public abstract class Entity : MonoBehaviour, Named
+    public abstract class Entity : MonoBehaviour, INamed
     {
         public OwnershipInfo ownershipInfo;
 
         public abstract string Name { get; }
 
         public bool canMove { get; protected set; }
-
-        public enum EntityType : byte
-        {
-            Building,
-            Agent
-        }
 
         public EntityType entityType { get; protected set; }
 
@@ -71,4 +58,17 @@ namespace Entities
 
         
     }
+
+    //public abstract class EntityComponent
+    //{
+    //    Entity entity;
+
+    //    public EntityComponent(Entity entity)
+    //    {
+    //        this.entity = entity;
+    //    }
+
+    //    public abstract void Start();
+    //    public abstract void ProcessTick();
+    //}
 }

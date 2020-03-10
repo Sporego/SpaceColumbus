@@ -11,11 +11,11 @@ namespace Entities.Bodies.Injuries
 
     public enum EInjuryState : byte
     {
-        None = 0,
-        InjuryMinor = 1,
-        InjuryMajor = 2,
-        //InjuryImpaired,
-        InjuryTerminal = 3
+        None,
+        InjuryMinor,
+        InjuryMajor,
+        InjuryImpaired,
+        InjuryTerminal
     }
 
     public static class InjuryStates

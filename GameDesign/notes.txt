@@ -42,4 +42,4 @@
 6. Entity bodies / materials
 
 
-7. BUG: MoveBrain movement; sometimes, when multiple agents are told to move to X, not all agents actually start moving to X (command ignored).
+7. BUG: MoveBrain movement; when multiple agents are told to move to X, not all agents actually start moving to X (command ignored).

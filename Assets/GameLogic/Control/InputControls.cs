@@ -67,7 +67,7 @@ namespace InputControls
     }
 
     [System.Serializable]
-    public class KeyActiveEventGenerator : EventGenerator
+    public class KeyActiveEventGenerator : UpdatableEventGenerator
     {
         public List<KeyInfo> keys = new List<KeyInfo>();
 
@@ -96,7 +96,7 @@ namespace InputControls
     }
 
     [System.Serializable]
-    public abstract class KeyActiveEventListener : IEventListener
+    public abstract class KeyActiveEventListener : IEventListener<GameEvent>
     {
         public List<KeyInfo> keys = new List<KeyInfo>();
 

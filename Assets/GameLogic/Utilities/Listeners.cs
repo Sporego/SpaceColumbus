@@ -6,30 +6,35 @@ namespace Utilities.Events
 {
     public abstract class GameEvent { }
 
-    public interface IEventListener
+    public interface IEventListener<T>
     {
-        void Notify(GameEvent gameEvent);
+        void Notify(T gameEvent);
     }
 
-    public abstract class EventGenerator
+    public abstract class EventGenerator<T>
     {
-        protected List<IEventListener> eventListeners { get; }
+        protected List<IEventListener<T>> eventListeners { get; }
 
         public EventGenerator()
         {
-            eventListeners = new List<IEventListener>();
+            eventListeners = new List<IEventListener<T>>();
         }
 
-        public void AddListener(IEventListener eventListener)
+        public void AddListener(IEventListener<T> eventListener)
         {
             eventListeners.Add(eventListener);
         }
 
-        public virtual void OnEvent(GameEvent gameEvent)
+        public virtual void OnEvent(T gameEvent)
         {
             foreach (var eventListener in eventListeners)
                 eventListener.Notify(gameEvent);
         }
+    }
+
+    public abstract class UpdatableEventGenerator : EventGenerator<GameEvent>
+    {
+        public UpdatableEventGenerator() : base() { }
 
         public abstract void Update();
     }

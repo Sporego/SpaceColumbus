@@ -5,6 +5,15 @@ TagManager:
   serializedVersion: 2
   tags:
   - GameSession
+  - GameRoot
+  - NavMeshRoot
+  - Viewables
+  - NavMeshElement
+  - AgentRoot
+  - BuildingRoot
+  - ControlsRoot
+  - SelectionManager
+  - BuildingsRoot
   layers:
   - Default
   - TransparentFX
@@ -15,7 +24,7 @@ TagManager:
   - 
   - 
   - PostProcessing
-  - 
+  - Agents
   - 
   - 
   - 

@@ -1,0 +1,5 @@
+game_design
+
+Space Columbus
+    Drop-in on an inhabited planet, destroy all local (wild-)life, extract their resources and settle in. Or move on to the next planet to do this again!
+

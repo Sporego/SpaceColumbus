@@ -56,6 +56,12 @@ namespace Brains.Movement
         // TODO: make sure this works properly
         public void checkStuck()
         {
+            if (this.navMeshAgent.pathPending)
+            {
+                this.stuck = false;
+                return;
+            }
+
             bool stuck = false;
             Vector3 curPos = position;
             stuck |= (posAtStuck - curPos).magnitude < StuckDistanceThreshold;

@@ -45,16 +45,14 @@ namespace EntitySelection
             this.selectionListeners.Add(selectionListener);
         }
 
-        public List<SelectionListener> GetSelectedListeners() { return this.currentlySelectedListeners; }
+        //public List<SelectionListener> GetSelectedListeners() { return this.currentlySelectedListeners; }
 
         public List<GameObject> GetSelectedObjects() { return this.currentlySelectedGameObjects; }
 
-        public List<GameObject> GetSelectedObjects(SelectionCriteria criteria)
-        {
-            var objects = this.currentlySelectedGameObjects;
-
-            return this.currentlySelectedGameObjects;
-        }
+        //public List<GameObject> GetSelectedObjects(SelectionCriteria criteria)
+        //{
+        //    return this.currentlySelectedGameObjects;
+        //}
 
         private void ProcessSelected()
         {
@@ -69,7 +67,6 @@ namespace EntitySelection
                     selectedListeners.Add(selectionListener);
                     selectedObjects.Add(selectionListener.selectable.gameObject);
                 }
-
             }
 
             this.currentlySelectedListeners = selectedListeners;
@@ -81,6 +78,8 @@ namespace EntitySelection
 
         public void DeselectAll()
         {
+            this.mouseOverObject = null;
+
             foreach (var selectionListener in selectionListeners)
             {
                 var selectable = selectionListener.selectable;
@@ -100,24 +99,35 @@ namespace EntitySelection
         {
             foreach (var selectable in GetSelectables(gameObject))
             {
-                if (selectable.isSelected)
-                    selectable.Deselect();
+                Deselect(selectable);
             }
+        }
+
+        public void Deselect(Selectable selectable)
+        {
+            if (selectable.isSelected)
+                selectable.Deselect();
+        }
+
+        public void Select(Selectable selectable, SelectionCriteria selectionCriteria = null)
+        {
+            if (!selectable.isSelected && SelectionCriteria.isValidSelection(selectionCriteria, selectable))
+                selectable.Select();
         }
 
         public void Select(GameObject gameObject, SelectionCriteria selectionCriteria=null)
         {
             foreach (var selectable in GetSelectables(gameObject))
             {
-                if (!selectable.isSelected && SelectionCriteria.isValidSelection(selectionCriteria, selectable))
-                    selectable.Select();
+                Select(selectable, selectionCriteria);
             }
         }
 
         public void UpdateMouseSelection(GameObject mouseOverObject, SelectionCriteria selectionCriteria)
         {
-            if (this.mouseOverObject == mouseOverObject)
-                return;
+            // TODO: optimize this
+            //if (this.mouseOverObject == mouseOverObject)
+            //    return;
 
             Deselect(this.mouseOverObject);
             this.mouseOverObject = mouseOverObject;
@@ -126,19 +136,13 @@ namespace EntitySelection
 
         public void UpdateSelected(Vector3 s1, Vector3 s2, GameObject mouseOverObject, SelectionCriteria selectionCriteria = null)
         {
-            Selectable[] selectables = mouseOverObject.GetComponentsInParent<Selectable>();
-            foreach (var selectable in selectables)
-            {
-                if (SelectionCriteria.isValidSelection(selectionCriteria, selectable))
-                    selectable.Select();
-            }
-
             if (CheckDirty(s1, s2))
             {
                 // update controls vars
                 timeSinceLastSelectionUpdate = 0f;
 
                 UpdateBoxSelection(s1, s2, selectionCriteria);
+                UpdateMouseSelection(mouseOverObject, selectionCriteria);
                 ProcessSelected();
             }
         }
@@ -158,10 +162,11 @@ namespace EntitySelection
                     bool selected = s1p.x <= p.x && p.x <= s2p.x && s1p.y <= p.y && p.y <= s2p.y;
 
                     // update and notify only selection changes
-                    if (selectable.isSelected != selected)
-                    {
-                        selectionListener.Notify(new SelectionEvent(selected));
-                    }
+                    if (selected)
+                        Select(selectable); // no need to check selectable again
+
+                    else
+                        Deselect(selectable);
                 }
                 else
                 {
@@ -186,9 +191,13 @@ namespace EntitySelection
                 selectionScreenCoords[1] = selectionScreenCoordsNew[1];
             }
 
+            // harder control
+            dirty &= timeSinceLastSelectionUpdate >= timeBetweenSelectionUpdates;
             dirty |= timeSinceLastSelectionUpdate >= timeBetweenSelectionUpdates;
 
             return dirty;
         }
     }
+
+
 }

@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using Entities.Bodies.Damages;
+using Entities.Bodies.Injuries;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,6 +12,8 @@ namespace Entities
     public class Structure : Entity
     {
         override public string Name { get { return "Structure"; } }
+
+        override public bool IsDamageable { get { return false; } }
 
         private void Awake()
         {
@@ -24,6 +28,16 @@ namespace Entities
         void Update()
         {
 
+        }
+
+        public override EInjuryState GetInjuryState()
+        {
+            return EInjuryState.None;
+        }
+
+        public override void TakeDamage(Damage damage)
+        {
+            return;
         }
     }
 }

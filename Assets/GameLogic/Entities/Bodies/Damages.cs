@@ -11,6 +11,7 @@ namespace Entities.Bodies.Damages
 {
     public interface IDamageable
     {
+        bool IsDamageable { get; }
         void TakeDamage(Damage damage);
     }
 

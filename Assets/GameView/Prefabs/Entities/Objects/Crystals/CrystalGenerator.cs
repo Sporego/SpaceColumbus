@@ -33,8 +33,6 @@ public class CrystalGenerator : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        Debug.Log("Awaking Crystals");
-
         randomGen = new System.Random(useRandomSeed ? UnityEngine.Random.Range(0, int.MaxValue): seed);
         GenerateCrystal();
     }

@@ -25,7 +25,7 @@ public class GameSession : MonoBehaviour
 
     [Header("Agent Config")]
     public bool spawnAgents = false;
-    public int numAgentsToSpawn = 1000;
+    public int numAgentsToSpawn = 2000;
     public bool spawnAgentRandom = false;
     public float spawnAgentRandomDistance = 1000f;
 

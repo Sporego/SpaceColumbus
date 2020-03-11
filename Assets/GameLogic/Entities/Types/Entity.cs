@@ -7,6 +7,9 @@ using UnityEngine.AI;
 using EntitySelection;
 using Brains;
 
+using Entities.Bodies.Damages;
+using Entities.Bodies.Injuries;
+
 using Players;
 
 namespace Entities
@@ -22,11 +25,12 @@ namespace Entities
         Agent
     }
 
-    public abstract class Entity : MonoBehaviour, INamed
+    public abstract class Entity : MonoBehaviour, INamed, IDamageable, IWithInjuryState
     {
         public OwnershipInfo ownershipInfo;
 
         public abstract string Name { get; }
+        public abstract bool IsDamageable { get ; }
 
         public bool canMove { get; protected set; }
 
@@ -56,7 +60,9 @@ namespace Entities
             //    component.FixedUpdate(this);
         }
 
-        
+        public abstract void TakeDamage(Damage damage);
+
+        public abstract EInjuryState GetInjuryState();
     }
 
     //public abstract class EntityComponent

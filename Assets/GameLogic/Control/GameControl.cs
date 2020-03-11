@@ -11,6 +11,8 @@ using Utilities.Misc;
 using Utilities.Events;
 using EntitySelection;
 
+using Entities;
+
 using Players;
 
 [AddComponentMenu("Input-Control")]
@@ -19,8 +21,8 @@ public class GameControl : MonoBehaviour
     #region Configuration
     [Header("GUI configuration")]
     public bool showGUI = true;
-    //public int guiMenuWidth = 200;
-    //public int guiMenuHeight = 300;
+    public int guiMenuWidth = 200;
+    public int guiMenuHeight = 300;
 
     public Color guiColor = new Color(0.8f, 0.8f, 0.95f, 0.25f);
     public Color guiBorderColor = new Color(0.8f, 0.8f, 0.95f);
@@ -166,9 +168,11 @@ public class GameControl : MonoBehaviour
         // TODO LIST CRITERIA
         SelectionCriteria selectionCriteria = new SelectionCriteria(true, false, true, gameSession.currentPlayer.ownership.info);
 
-        if (!isBoxSelecting && selectionManager.GetSelectedObjects().Count == 0)
+        if (!isBoxSelecting)
         {
-            selectionManager.UpdateMouseSelection(mouseOverObject, selectionCriteria);
+            if (selectionManager.GetSelectedObjects().Count == 0)
+                selectionManager.UpdateMouseSelection(mouseOverObject, null);
+
             return;
         }
 
@@ -285,7 +289,6 @@ public class GameControl : MonoBehaviour
     {
         if (showGUI)
         {
-
             if (isBoxSelecting)
             {
                 // Create a rect from both mouse positions
@@ -293,6 +296,42 @@ public class GameControl : MonoBehaviour
                 UIUtils.DrawScreenRect(rect, guiColor);
                 UIUtils.DrawScreenRectBorder(rect, guiBorderWidth, guiBorderColor);
             }
+
+            var selectedObjects = selectionManager.GetSelectedObjects();
+            int count = selectedObjects.Count;
+            if (count > 0)
+            {
+                string info = "Selected " + count + ((count == 1) ? " entity.\n" : " entities.\n");
+
+                if (selectedObjects.Count == 1)
+                {
+                    var selectedObject = selectedObjects[0];
+                    var entity = selectedObject.GetComponent<Entity>();
+                    if (entity != null)
+                    {
+                        info += "Entity: " + entity.Name + "\n";
+
+                        if (entity.IsDamageable)
+                            info += "Injury: " + entity.GetInjuryState() + "\n";
+                        else
+                            info += "Cannot be damaged.\n";
+
+                        if (entity.GetType() == typeof(Agent))
+                        {
+                            Agent agent = entity as Agent;
+
+                            info += agent.Body.GetHealthInfo();
+                        }
+                    }
+                }
+                else
+                {
+                }
+
+                GUI.Box(new Rect(Screen.width - guiMenuWidth, Screen.height - guiMenuHeight, guiMenuWidth, guiMenuHeight), info);
+
+            }
+
 
             //if (selectedTile != null)
             //{

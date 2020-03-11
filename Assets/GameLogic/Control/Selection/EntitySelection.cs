@@ -23,13 +23,10 @@ namespace EntitySelection
 
         public static bool isValidSelection(SelectionCriteria criteria, Selectable selectable)
         {
-            bool valid = true;
-
             if (criteria is null)
-                return valid;
+                return true;
 
-            // TODO implement this
-
+            bool valid = true;
             valid &= criteria.isAgent == StaticGameDefs.IsAgent(selectable.gameObject);
             valid &= criteria.isBuilding == StaticGameDefs.IsBuilding(selectable.gameObject);
             //valid &= isControlable != selectable.gameObject.GetComponent<Owner>();

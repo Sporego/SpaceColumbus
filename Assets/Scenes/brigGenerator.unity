@@ -476,7 +476,7 @@ MonoBehaviour:
   DEBUG: 0
   DEBUG_MAP_GEN: 0
   spawnAgents: 1
-  numAgentsToSpawn: 1000
+  numAgentsToSpawn: 2000
   spawnAgentRandom: 1
   spawnAgentRandomDistance: 300
   generateRegion: 0
@@ -1177,6 +1177,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showGUI: 1
+  guiMenuWidth: 200
+  guiMenuHeight: 300
   guiColor: {r: 0.8, g: 0.8, b: 0.95, a: 0.25}
   guiBorderColor: {r: 0.8, g: 0.8, b: 0.95, a: 1}
   guiBorderWidth: 2
@@ -2536,7 +2538,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7056aeca5d2e0c64ca2dc049c18ed4ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeBetweenSelectionUpdates: 0.05
+  timeBetweenSelectionUpdates: 0.25
 --- !u!4 &1917036097
 Transform:
   m_ObjectHideFlags: 0

@@ -57,7 +57,7 @@ namespace Entities.Bodies
             try
             {
                 var body = AvailableBodies[variant];
-                return body.Clone();
+                return body.Clone() as Body;
             }
             catch (KeyNotFoundException e)
             {
@@ -198,11 +198,14 @@ namespace Entities.Bodies
 
                     foreach (var partName in partsList)
                     {
+                        //Debug.Log(variantName + " " + bodyPartName + " getting a new " + partName);
+
                         List<string> customNames = BodyPartXmlReader.getStrings(
                             new List<string>() { RootField, InclusionField, variantName, bodyPartName, partName, ItemField });
 
                         if (customNames.Count == 0)
                             container.AddBodyPart(AvailableBodyParts[variantName][partName].Clone());
+
                         foreach (var customName in customNames)
                         {
                             BodyPart bp = AvailableBodyParts[variantName][partName].Clone();
@@ -215,7 +218,7 @@ namespace Entities.Bodies
                     // TODO: check if this is necessary
                     AvailableBodyParts[variantName][bodyPartName] = container;
 
-                    body.AddBodyParts(container);
+                    body.AddBodyPart(container);
                 }
 
                 AvailableBodies[variantName] = body;

@@ -40,11 +40,15 @@ namespace Entities.Bodies.Health
     {
         private int HpBase;
 
+        public bool IsDamageable { get { return HpBase > 0; } }
+
         // always between 0 and 1
         public float Health { get; private set; }
 
         public int HpCurrent { get { return Mathf.RoundToInt(Health * HpBase); } }
         public int HpPrev { get; private set; }
+
+        public string HpAsString { get { return "[" + HpCurrent + "/" + HpBase + "]"; } }
 
         public List<DamageMultiplier> damageMultipliers { get; private set; }
 

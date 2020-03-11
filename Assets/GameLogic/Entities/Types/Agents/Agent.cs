@@ -9,6 +9,9 @@ using Brains.Attack;
 using EntitySelection;
 
 using Entities.Bodies;
+using Entities.Bodies.Damages;
+using Entities.Bodies.Health;
+using Entities.Bodies.Injuries;
 
 namespace Entities
 {
@@ -18,9 +21,11 @@ namespace Entities
      )]
     public class Agent : Entity
     {
-        Body body;
+        public Body Body { get; private set; }
 
         override public string Name { get { return "Agent"; } }
+
+        override public bool IsDamageable { get { return this.Body.IsDamageable; } }
 
         AgentBrain agentBrain;
 
@@ -31,7 +36,7 @@ namespace Entities
 
         void Start()
         {
-            this.body = Body.HumanoidBody;
+            this.Body = Body.HumanoidBody;
 
             var moveBrain = new MoveBrain(this.GetComponent<NavMeshAgent>());
             var attackBrain = new AttackBrain();
@@ -51,6 +56,16 @@ namespace Entities
         void FixedUpdate()
         {
             agentBrain.ProcessTick();
+        }
+
+        override public void TakeDamage(Damage damage)
+        {
+            Body.TakeDamage(damage);
+        }
+
+        override public EInjuryState GetInjuryState()
+        {
+            return Body.GetInjuryState();
         }
     }
 }

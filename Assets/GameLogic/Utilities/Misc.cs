@@ -1,13 +1,105 @@
 ﻿using UnityEngine;
 
+using System;
 using System.Text;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using System;
+using System.Security.Cryptography;
 
 namespace Utilities.Misc
 {
+    public static class Lines
+    {
+        public struct LineSegment
+        {
+            public Vector2 p;
+            public Vector2 q;
+
+            public LineSegment(Vector2 p, Vector2 q)
+            {
+                this.p = p;
+                this.q = q;
+            }
+        }
+
+        // Given three colinear points p, q, r, the function checks if 
+        // point q lies on line segment 'pr' 
+        public static bool OnSegment(Vector2 p, Vector2 q, Vector2 r)
+        {
+            if (q.x <= Mathf.Max(p.x, r.x) && q.x >= Mathf.Min(p.x, r.x) &&
+                q.y <= Mathf.Max(p.y, r.y) && q.y >= Mathf.Max(p.y, r.y))
+                return true;
+
+            return false;
+        }
+
+        // To find orientation of ordered triplet (p, q, r). 
+        // The function returns following values 
+        // 0 --> p, q and r are colinear 
+        // 1 --> Clockwise 
+        // 2 --> Counterclockwise 
+        public static int Orientation(Vector2 p, Vector2 q, Vector2 r)
+        {
+            // See https://www.geeksforgeeks.org/orientation-3-ordered-points/ 
+            // for details of below formula. 
+            float val = (q.y - p.y) * (r.x - q.x) -
+                      (q.x - p.x) * (r.y - q.y);
+
+            if (val == 0) return 0;  // colinear 
+
+            return (val > 0) ? 1 : 2; // clock or counterclock wise 
+        }
+
+        public static bool DoIntersect(LineSegment s1, LineSegment s2) { return DoIntersect(s1.p, s1.q, s2.p, s2.q); }
+
+        // The main function that returns true if line segment 'p1q1' 
+        // and 'p2q2' intersect. 
+        public static bool DoIntersect(Vector2 p1, Vector2 q1, Vector2 p2, Vector2 q2)
+        {
+            // Find the four orientations needed for general and 
+            // special cases 
+            int o1 = Orientation(p1, q1, p2);
+            int o2 = Orientation(p1, q1, q2);
+            int o3 = Orientation(p2, q2, p1);
+            int o4 = Orientation(p2, q2, q1);
+
+            // General case 
+            if (o1 != o2 && o3 != o4)
+                return true;
+
+            // Special Cases 
+            // p1, q1 and p2 are colinear and p2 lies on segment p1q1 
+            if (o1 == 0 && OnSegment(p1, p2, q1)) return true;
+
+            // p1, q1 and q2 are colinear and q2 lies on segment p1q1 
+            if (o2 == 0 && OnSegment(p1, q2, q1)) return true;
+
+            // p2, q2 and p1 are colinear and p1 lies on segment p2q2 
+            if (o3 == 0 && OnSegment(p2, p1, q2)) return true;
+
+            // p2, q2 and q1 are colinear and q1 lies on segment p2q2 
+            if (o4 == 0 && OnSegment(p2, q1, q2)) return true;
+
+            return false; // Doesn't fall in any of the above cases 
+        }
+    }
+
+    public static class Encrypt
+    {
+        public static string sha256(string str)
+        {
+            SHA256Managed crypt = new SHA256Managed();
+            StringBuilder hash = new StringBuilder();
+            byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(str), 0, Encoding.UTF8.GetByteCount(str));
+            foreach (byte bit in crypto)
+            {
+                hash.Append(bit.ToString("x2"));
+            }
+            return hash.ToString().ToLower();
+        }
+    }
+
     public static class Constants
     {
         public const float EPSILON = 1e-9f;
@@ -45,27 +137,6 @@ namespace Utilities.Misc
         public static void LogWT(string tag, params object[] list)
         {
             Debug.LogWarning(tag + ": " + Tools.BuildString(list));
-        }
-    }
-
-    public static class Slicable
-    {
-        public static T[] Slice<T>(this T[] source, int start, int end)
-        {
-            // Handles negative ends.
-            if (end < 0)
-            {
-                end = source.Length + end;
-            }
-            int len = end - start;
-
-            // Return new array.
-            T[] res = new T[len];
-            for (int i = 0; i < len; i++)
-            {
-                res[i] = source[i + start];
-            }
-            return res;
         }
     }
 

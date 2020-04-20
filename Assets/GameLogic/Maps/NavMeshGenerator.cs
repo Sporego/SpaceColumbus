@@ -38,12 +38,15 @@ namespace Navigation
                 navMeshSurface.agentTypeID = settings.agentTypeID;
 
                 NavMeshBuildSettings actualSettings = navMeshSurface.GetBuildSettings();
+
                 navMeshSurface.useGeometry = NavMeshCollectGeometry.RenderMeshes; // or you can use RenderMeshes
                 //navMeshSurface.layerMask = true;
 
                 // remove existing agents from the navmesh layermask
                 navMeshSurface.layerMask -= LayerMask.GetMask("Agents");
                 navMeshSurface.layerMask -= LayerMask.GetMask("Ignore Raycast");
+
+                navMeshSurface.buildHeightMesh = true;
 
                 navMeshSurface.BuildNavMesh();
             }

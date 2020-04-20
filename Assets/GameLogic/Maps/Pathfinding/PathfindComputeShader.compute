@@ -1,0 +1,40 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+static const int threadGroupSize = 1024;
+
+struct FlowData
+{
+    int amountIn;
+    int amountOut;
+};
+
+int width;
+int height;
+int count;
+
+float decay;
+
+RWStructuredBuffer<FlowData> flowData;
+
+#define ij2index(i, j) i * width + j
+//#define index2ij(i, j) i = index / width; j = index % width;
+
+[numthreads(threadGroupSize, 1, 1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    int index = id.x;
+
+    int y = index % width; // width
+    int x = index / width; // height
+
+    int left = clamp(x - 1, 0, width-1);
+    int right = clamp(x + 1, 0, width-1);
+    float dx = flowData[ij2index(right, y)].amountIn + flowData[ij2index(left, y)].amountIn;
+
+    int up = clamp(y - 1, 0, height-1);
+    int down = clamp(y + 1, 0, height-1);
+    float dy = flowData[ij2index(x, up)].amountIn + flowData[ij2index(x, down)].amountIn;
+
+    flowData[index].amountOut = flowData[index].amountIn + (int)(saturate(dx + dy) * decay);
+}

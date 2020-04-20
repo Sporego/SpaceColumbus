@@ -1,0 +1,2 @@
+﻿#define FLOAT_MIN 0.0000001
+#define FLOAT_MAX 1000000

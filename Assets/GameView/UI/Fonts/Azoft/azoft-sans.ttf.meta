@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: 6b6b5e8b660002d4f9fbf776bb4a3d6f
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Azoft Sans
+  fontNames:
+  - Azoft Sans
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 1d1977cd5dcf3044699aecf575294a2d, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

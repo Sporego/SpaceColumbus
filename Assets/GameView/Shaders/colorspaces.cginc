@@ -1,3 +1,6 @@
+#ifndef COLORSPACES
+#define COLORSPACES
+
 half3 rgb2yuv(half3 rgb)
 {
     half3 yuv;
@@ -62,3 +65,5 @@ half4 hsvMaxBlendMode(half3 a, half3 b)
     half3 hsv3 = half3(max(hsv1.x, hsv2.x), hsv2.y, hsv1.z);
     return half4(hsv2rgb(hsv3), 1);
 }
+
+#endif /* COLORSPACES */

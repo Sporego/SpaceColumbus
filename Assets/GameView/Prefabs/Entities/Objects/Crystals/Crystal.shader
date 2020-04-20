@@ -35,15 +35,6 @@ Shader "Custom/Crystal"
             "_CrystalBackgroundTexture1"
         }
 
-        //Pass
-        //{
-        //    Name "BackFaceDepthPass"
-
-        //    Cull Front
-        //    ZWrite On
-        //    ColorMask 0
-        //}
-
         // Surface Shader Passes
 
         ZWrite On
@@ -133,7 +124,6 @@ Shader "Custom/Crystal"
                 #include "UnityStandardUtils.cginc"
                 #include "Assets/GameView/Shaders/colorspaces.cginc"
                 #include "Assets/GameView/Shaders/ParallaxMapping.cginc"
-                #include "Crystal.cginc"
 
                 struct appdata
                 {
@@ -171,6 +161,12 @@ Shader "Custom/Crystal"
 
                 fixed4 _RootPos;
 
+                float depthAlongRay(fixed3 worldPos, fixed3 rootPos)
+                {
+                    float3 localPos = worldPos - mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
+                    return distance(rootPos, localPos);
+                }
+
                 v2f vert(appdata v)
                 {
                     v2f o;
@@ -180,8 +176,6 @@ Shader "Custom/Crystal"
 
                     o.uvBump = TRANSFORM_TEX(v.uv, _BumpMap);
                     o.uvParallax = TRANSFORM_TEX(v.uv, _ParallaxMap);
-
-                    //float3 normal = UnpackScaleNormal(tex2D(_BumpMap, IN.uv_BumpMap), _BumpScale);
 
                     o.normal = v.normal;
 

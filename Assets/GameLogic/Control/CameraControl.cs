@@ -95,6 +95,7 @@ public class CameraControl : MonoBehaviour
     private bool toggleCenterPointFocus = false;
     private bool centeringOnPlayer = false;
 
+    private GameControl gameControl;
     private GameSession gameSession;
     private Region region;
 
@@ -105,6 +106,8 @@ public class CameraControl : MonoBehaviour
         Camera.main.depthTextureMode = DepthTextureMode.Depth;
 
         transform.position = getCameraPositionPlayerCentered();
+
+        gameControl = GameObject.FindGameObjectWithTag(StaticGameDefs.GameControlTag).GetComponent<GameControl>();
 
         gameSession = GameObject.FindGameObjectWithTag(StaticGameDefs.GameSessionTag).GetComponent<GameSession>();
         region = gameSession.getRegion();
@@ -122,7 +125,7 @@ public class CameraControl : MonoBehaviour
 
     void Update()
     {
-        region = gameSession.getRegion();
+        region = gameSession.getRegion(); // can do this via events instead
 
         cameraMoving = false;
         cameraRotating = false;
@@ -168,6 +171,8 @@ public class CameraControl : MonoBehaviour
             mouseOverGame = true;
         }
 
+        mouseOverGame &= !gameControl.IsMouseOverUi();
+
         // on right click
         if (KeyActiveChecker.isActive(GameControlsManager.rightClickDown))
         {
@@ -192,6 +197,9 @@ public class CameraControl : MonoBehaviour
 
         forward.y = 0;
         right.y = 0;
+
+        forward.Normalize();
+        right.Normalize();
 
         if (KeyActiveChecker.isActive(GameControlsManager.cameraForward) ||
             (allowEdgeScrolling && Input.mousePosition.y >= Screen.height - edgeScrollDetectBorderThickness))

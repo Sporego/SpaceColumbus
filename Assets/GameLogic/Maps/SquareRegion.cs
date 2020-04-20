@@ -15,7 +15,8 @@ namespace SquareRegions
         public SquareRegion(int seed,
             RegionGenConfig regionGenConfig,
             HeightMapConfig heightMapConfig,
-            FastPerlinNoiseConfig noiseConfig
+            FastPerlinNoiseConfig noiseConfig,
+            ErosionConfig erosionConfig
         ) : base(seed)
         {
             // ErosionConfig erosionConfig
@@ -26,7 +27,7 @@ namespace SquareRegions
             this.gridRadius = computeGridRadius();
 
             noiseConfig.resolution = (int)(this.gridRadius * heightMapConfig.resolutionScale) + 1;
-            this.heightMap = new HeightMap(seed, heightMapConfig, noiseConfig); //erosionConfig);
+            this.heightMap = new HeightMap(seed, heightMapConfig, noiseConfig, erosionConfig);
 
             this.tileSize = regionGenConfig.tileSize;
 

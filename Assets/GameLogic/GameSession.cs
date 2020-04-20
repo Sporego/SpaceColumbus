@@ -10,6 +10,9 @@ using Regions;
 using SquareRegions;
 using RegionModelGenerators;
 
+using Animation;
+using Animation.Systems;
+
 using Entities;
 using Navigation;
 
@@ -38,6 +41,7 @@ public class GameSession : MonoBehaviour
     public RegionGenConfig regionGenConfig;
     public HeightMapConfig heightMapConfig;
     public FastPerlinNoiseConfig noiseConfig;
+    public ErosionConfig erosionConfig;
 
     [Header("UI Config")]
     public bool drawGizmos = true;
@@ -46,20 +50,12 @@ public class GameSession : MonoBehaviour
     [Range(0, 100)]
     public int gizmoSkip = 0;
 
-    // public ErosionConfig erosionConfig;
-
     private Region region;
 
-    private SelectionManager selectionManager;
-
-    private PlayerManager playerManager;
-    public Player currentPlayer { get; private set; }
+    public Player CurrentPlayer { get; private set; }
 
     public void Awake()
     {
-        playerManager = new PlayerManager();
-        currentPlayer = playerManager.AddNewPlayer();
-
         Initialize();
     }
 
@@ -83,6 +79,12 @@ public class GameSession : MonoBehaviour
 
         BuildNavMeshes();
 
+        EntityManager.Initialize();
+        SelectionManager.Initialize();
+
+        PlayerManager.Initialize();
+        CurrentPlayer = PlayerManager.AddNewPlayer();
+
         if (spawnAgents)
             for (int i = 0; i < numAgentsToSpawn; i++)
                 SpawnSimpleAgent(spawnAgentRandom);
@@ -90,7 +92,7 @@ public class GameSession : MonoBehaviour
 
     public void BuildRegion()
     {
-        this.region = new SquareRegion(this.seed, regionGenConfig, heightMapConfig, noiseConfig); // erosionConfig);
+        this.region = new SquareRegion(this.seed, regionGenConfig, heightMapConfig, noiseConfig, erosionConfig);
     }
 
     public void BuildRegionView()
@@ -143,7 +145,7 @@ public class GameSession : MonoBehaviour
 
     public void MoveSelectedAgents(Vector3 destination)
     {
-        var selectedObjects = selectionManager.GetSelectedObjects();
+        var selectedObjects = SelectionManager.GetSelectedObjects();
         foreach (var selectedObject in selectedObjects)
         {
             var agent = selectedObject.GetComponent<Agent>();
@@ -154,7 +156,7 @@ public class GameSession : MonoBehaviour
 
     public void StopSelectedAgents()
     {
-        var selectedObjects  = selectionManager.GetSelectedObjects();
+        var selectedObjects = SelectionManager.GetSelectedObjects();
         foreach (var selectedObject in selectedObjects)
         {
             var agent = selectedObject.GetComponent<Agent>();
@@ -172,12 +174,15 @@ public class GameSession : MonoBehaviour
     void Start()
     {
         Debug.Log("Starting game session.");
-
-        this.selectionManager = GameObject.FindGameObjectWithTag(StaticGameDefs.SelectionManagerTag).GetComponent<SelectionManager>();
     }
 
     public void Update()
     {
+        float time = Time.time;
+        float deltaTime = Time.deltaTime;
+
+        AnimationManager.Update(time, deltaTime);
+
         //SpawnSimpleAgent();
         if (regenerate)
         {

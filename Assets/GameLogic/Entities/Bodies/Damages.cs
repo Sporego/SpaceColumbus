@@ -4,17 +4,11 @@ using UnityEditor;
 using System.Collections.Generic;
 
 using Utilities.Misc;
-
+using Entities.Bodies.Health;
 using Entities.Materials;
 
 namespace Entities.Bodies.Damages
 {
-    public interface IDamageable
-    {
-        bool IsDamageable { get; }
-        void TakeDamage(Damage damage);
-    }
-
     public enum DamageType : byte
     {
         None,

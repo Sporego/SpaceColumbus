@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using Utilities.XmlReader;
 using Utilities.Misc;
 
+using Common;
+
 using Entities;
 using Entities.Bodies.Damages;
 

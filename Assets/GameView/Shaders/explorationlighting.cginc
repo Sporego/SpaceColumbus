@@ -1,3 +1,5 @@
+#ifndef EXPLORATIONLIGHTING
+#define EXPLORATIONLIGHTING
 
 struct SurfaceOutputCharacter {
     fixed3 Albedo;
@@ -122,3 +124,5 @@ inline fixed4 LightingExplorationRiver (SurfaceOutput s, fixed3 lightDir, fixed3
     c.a = 1;
     return c;
 }
+
+#endif /* EXPLORATIONLIGHTING */

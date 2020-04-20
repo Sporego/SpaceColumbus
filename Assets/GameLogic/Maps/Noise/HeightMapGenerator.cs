@@ -75,49 +75,51 @@ namespace HeightMapGenerators
         public HeightMapConfig() { }
     }
 
-    // [System.Serializable]
-    // public class ErosionConfig {
+    [System.Serializable]
+    public class ErosionConfig
+    {
+        public ComputeShader erosionShader;
 
-    //     public bool applyErosion = true;
+        public bool applyErosion = true;
 
-    //     // number of iterations of erosion computations
-    //     [Range(0, 2000)]
-    //     public int iterations = 50;
+        // number of iterations of erosion computations
+        [Range(0, 200000)]
+        public int iterations = 50;
 
-    //     // scales the influence of erosion linearly
-    //     [Range(0, 1)]
-    //     public float strength = 1f;
+        // scales the influence of erosion linearly
+        [Range(0, 1)]
+        public float strength = 1f;
 
-    //     // amount of water to deposit during erosion simulation: higher means more erosion; acts like a strength parameter; high values smoothen erossion
-    //     [Range(0, 1)]
-    //     public float waterAmount = 0.1f;
+        // amount of water to deposit during erosion simulation: higher means more erosion; acts like a strength parameter; high values smoothen erossion
+        [Range(0, 1)]
+        public float waterAmount = 0.1f;
 
-    //     // amount of water to lose per simulation iteration: water[time k + 1] = erosionWaterLoss * water[time k]
-    //     [Range(0, 1)]
-    //     public float waterLoss = 0.99f;
+        // amount of water to lose per simulation iteration: water[time k + 1] = erosionWaterLoss * water[time k]
+        [Range(0, 1)]
+        public float waterLoss = 0.99f;
 
-    //     // limits the influence of elevation difference on terrain movement; acts as maximum elevation difference after which terrain movement won't be affected
-    //     [Range(0, 1)]
-    //     public float waterVelocityElevationDiffRegularizer = 0.2f;
+        // limits the influence of elevation difference on terrain movement; acts as maximum elevation difference after which terrain movement won't be affected
+        [Range(0, 1)]
+        public float waterVelocityElevationDiffRegularizer = 0.2f;
 
-    //     // if elevation is in range [0-1], water will contribute to elevation in waterAmount / waterToElevationProportion
-    //     // ex: elevation = 0.9, waterAmount = 0.2, combined elevation = 0.9 + 0.2 = 1.1 
-    //     [Range(0, 1)]
-    //     public float waterToElevationProportion = 0.05f;
+        // if elevation is in range [0-1], water will contribute to elevation in waterAmount / waterToElevationProportion
+        // ex: elevation = 0.9, waterAmount = 0.2, combined elevation = 0.9 + 0.2 = 1.1 
+        [Range(0, 1)]
+        public float waterToElevationProportion = 0.05f;
 
-    //     [Range(0, 1)]
-    //     public float minTerrainMovementProportion = 0.01f;
+        [Range(0, 1)]
+        public float minTerrainMovementProportion = 0.01f;
 
-    //     public ErosionConfig()
-    //     {
-    //     }
-    // }
+        public ErosionConfig()
+        {
+        }
+    }
 
     public class HeightMap
     {
         private HeightMapConfig config;
         private FastPerlinNoiseConfig noiseConfig;
-        // private ErosionConfig erosionConfig;
+        private ErosionConfig erosionConfig;
 
         private Noise noise;
 
@@ -137,28 +139,35 @@ namespace HeightMapGenerators
         public float craterSize { get { return this.config.craterSize; } }
         public float craterDepth{ get { return this.config.craterDepth; } }
 
-        // public int erosionIterations { get { return this.erosionConfig.iterations; } }
-        // public float erosionStrength { get { return this.erosionConfig.strength; } }
-        // public float erosionWaterAmount { get { return this.erosionConfig.waterAmount; } }
-        // public float erosionWaterLoss { get { return this.erosionConfig.waterLoss; } }
-        // public float erosionWaterVelocityElevationDiffRegularizer { get { return this.erosionConfig.waterVelocityElevationDiffRegularizer; } }
-        // public float erosionWaterToElevationProportion { get { return this.erosionConfig.waterToElevationProportion; } }
-        // public float erosionMinTerrainMovementProportion { get { return this.erosionConfig.minTerrainMovementProportion; } }
+        public ComputeShader erosionShader { get { return this.erosionConfig.erosionShader; } }
+        public int erosionIterations { get { return this.erosionConfig.iterations; } }
+        public float erosionStrength { get { return this.erosionConfig.strength; } }
+        public float erosionWaterAmount { get { return this.erosionConfig.waterAmount; } }
+        public float erosionWaterLoss { get { return this.erosionConfig.waterLoss; } }
+        public float erosionWaterVelocityElevationDiffRegularizer { get { return this.erosionConfig.waterVelocityElevationDiffRegularizer; } }
+        public float erosionWaterToElevationProportion { get { return this.erosionConfig.waterToElevationProportion; } }
+        public float erosionMinTerrainMovementProportion { get { return this.erosionConfig.minTerrainMovementProportion; } }
 
         public float getNoiseValueUV(float u, float v) { return this.noise.lerpNoiseValue(u, v); }
 
-        public HeightMap(int seed, HeightMapConfig config, FastPerlinNoiseConfig noiseConfig)
+        public HeightMap(int seed, HeightMapConfig config, FastPerlinNoiseConfig noiseConfig, ErosionConfig erosionConfig)
         {
             this.config = config;
             this.noiseConfig = noiseConfig;
             //this.noise = new ZeroNoiseMap(noiseConfig.resolution, seed);
-            this.noise = new FastPerlinNoise(seed, noiseConfig);
+            this.noise = new FastPerlinNoise(seed, this.noiseConfig);
+            this.erosionConfig = erosionConfig;
             modifyNoise();
         }
 
         public void modifyNoise()
         {
             float[,] elevations = this.noise.getNoiseValues();
+            Erosion erosion = new Erosion();
+            erosion.erosion = erosionShader;
+
+            if (erosionConfig.applyErosion)
+                erosion.Erode(elevations, erosionIterations);
 
             switch (preset)
             {
@@ -186,6 +195,9 @@ namespace HeightMapGenerators
 
                     break;
             }
+
+            Tools.normalize(elevations);
+
 
             // computeErosion (elevations);
 

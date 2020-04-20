@@ -157,7 +157,7 @@
                 //    o.Normal = lerp(normal1, normal2, alpha); // pick the highest values to maintain the important components of all
                 //}
 
-                void applySlopeTexture(Input IN, inout SurfaceOutputStandard o, float3 worldNormal)
+                SurfaceOutputStandard applySlopeTexture(Input IN, inout SurfaceOutputStandard o, float3 worldNormal)
                 {
                     float4 noise = tex2D(_Noise, IN.uv_Noise);
 
@@ -166,7 +166,7 @@
 
                     float slopeAmount = 1 - _SlopeAmount;
                     //slopeRatio = clamp(1 + (slopeRatio - slopeAmount) / _SlopeAmountVar, 0, _SlopeWeight);
-                    slopeRatio = clamp(1 + (slopeRatio - slopeAmount * (_SlopeAmountRand) / noise.y) / (_SlopeAmountVar * noise.z ), 0, _SlopeWeight);
+                    slopeRatio = clamp(1 + (slopeRatio - slopeAmount * (_SlopeAmountRand) / noise.x) / (_SlopeAmountVar * noise.y ), 0, _SlopeWeight);
                     //slopeRatio = clamp(1 + (slopeRatio - slopeAmount * noise.y) / (_SlopeAmountVar * noise.z), 0, _SlopeWeight);
                     slopeRatio = smoothstep(0, 1, slopeRatio);
 
@@ -193,6 +193,8 @@
                     float metallic2 = tex2D(_MetallicGlossMap2, IN.uv_Tex2);
                     o.Metallic = lerp(metallic1, metallic2, alpha);
                     o.Smoothness = lerp(_Glossiness1, _Glossiness2, alpha);
+
+                    return o;
                 }
 
                 float2 getParallaxOffset(sampler2D Tex, float parallaxAmount, float2 UV, float3 viewDir) {
@@ -212,7 +214,7 @@
 
                     ////float4 noise = tex2D(_Noise, IN.uv_Noise);
 
-                    applySlopeTexture(IN, o, worldNormal);
+                    o = applySlopeTexture(IN, o, worldNormal);
 
                     o.Albedo *= _Color;
                     o.Alpha = _Color.a;

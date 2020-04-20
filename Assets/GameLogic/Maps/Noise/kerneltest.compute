@@ -1,0 +1,14 @@
+﻿#pragma kernel CSMain1
+
+int _Size;
+
+RWStructuredBuffer<int> buffer1;
+
+[numthreads(1024, 1, 1)]
+void CSMain1(int3 threadID : SV_DispatchThreadID)
+{
+    if (threadID.x >= _Size)
+        return;
+
+    buffer1[threadID.x] = threadID.x;
+}

@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Regions;
 using UnityEngine;
-using Utilities.MeshTools;
+using UnityEditor;
+
+using Regions;
 using SquareRegions;
+
+using Utilities.MeshTools;
 
 namespace RegionModelGenerators
 {
     public class SquareRegionModelGenerator : RegionModelGenerator
     {
-        override
-        public void InitializeMesh(Region region)
+        override public void InitializeMesh(Region region)
         {
             Debug.Log("Initializing region Mesh...");
 
@@ -111,6 +113,7 @@ namespace RegionModelGenerators
 
             mesh.SetTriangles(tris.ToArray(), 0);
 
+            //Vector2[] uvsUnwrap = Unwrapping.GeneratePerTriangleUV(mesh);
             mesh.SetUVs(0, uvs);
 
             mesh.RecalculateNormals();

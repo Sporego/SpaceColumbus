@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+
 using UnityEngine;
+using UnityEngine.EventSystems;
+
+using Utilities.Misc;
+using Utilities.Events;
 
 using InputControls;
 using Pathfinding;
 using Regions;
-
-using Utilities.Misc;
-using Utilities.Events;
+using Entities;
+using Players;
 using EntitySelection;
 
-using Entities;
+using UI.Utils;
+using UI.Menus;
 
-using Players;
-
-[AddComponentMenu("Input-Control")]
 public class GameControl : MonoBehaviour
 {
     #region Configuration
@@ -29,6 +32,8 @@ public class GameControl : MonoBehaviour
     public int guiBorderWidth = 2;
     #endregion
 
+    private EventSystem eventSystem;
+
     //[Header("Indicators")]
     //#region SelectionIndicators
     //public GameObject mouseOverIndicator;
@@ -39,13 +44,13 @@ public class GameControl : MonoBehaviour
 
     private GameSession gameSession;
     private KeyPressManager keyPressManager;
+    private UiManager uiManager;
 
     static GUIStyle guiStyle;
 
     private Vector3 mouseOverWorldPosition;
 
     #region Unit Selection
-    private SelectionManager selectionManager;
     private GameObject mouseOverObject;
     private bool isBoxSelecting, startedBoxSelection;
     private Vector2 mousePositionAtSelectionStart, mousePositionAtSelectionEnd;
@@ -65,13 +70,14 @@ public class GameControl : MonoBehaviour
 
     public class AgentSpawnerControlListener : ControlListener
     {
-
         public AgentSpawnerControlListener(GameControl gameControl) : base(gameControl, GameControlsManager.leftClickDownDouble) { }
 
-        override public void Notify(GameEvent gameEvent)
+        override public bool OnEvent(GameEvent gameEvent)
         {
             Debug.Log("Spawning agents!!!");
             gameControl.SpawnAgent();
+
+            return true;
         }
     }
 
@@ -79,10 +85,12 @@ public class GameControl : MonoBehaviour
     {
         public AgentMoveControlListener(GameControl gameControl) : base(gameControl, GameControlsManager.rightClickDownDouble) { }
 
-        override public void Notify(GameEvent gameEvent)
+        override public bool OnEvent(GameEvent gameEvent)
         {
             Debug.Log("Moving agents!!!");
             gameControl.MoveSelectedAgents();
+
+            return true;
         }
     }
 
@@ -90,17 +98,18 @@ public class GameControl : MonoBehaviour
     {
         public AgentMoveStopListener(GameControl gameControl) : base(gameControl, GameControlsManager.agentStopHotkey) { }
 
-        override public void Notify(GameEvent gameEvent)
+        override public bool OnEvent(GameEvent gameEvent)
         {
             Debug.Log("Stopping agents!!!");
             gameControl.StopSelectedAgents();
+
+            return true;
         }
     }
 
     void Start()
     {
         isBoxSelecting = false;
-        selectionManager = GameObject.FindGameObjectWithTag(StaticGameDefs.SelectionManagerTag).GetComponent<SelectionManager>();
 
         mouseOverWorldPosition = new Vector3();
 
@@ -111,6 +120,9 @@ public class GameControl : MonoBehaviour
         keyPressManager.AddKeyPressListener(new AgentMoveControlListener(this));
         keyPressManager.AddKeyPressListener(new AgentMoveStopListener(this));
 
+        eventSystem = (EventSystem)GameObject.FindGameObjectWithTag(StaticGameDefs.EventSystemTag).GetComponent(typeof(EventSystem));
+        uiManager = (UiManager)GameObject.FindGameObjectWithTag(StaticGameDefs.UiManagerTag).GetComponent(typeof(UiManager));
+
         // create GUI style
         guiStyle = new GUIStyle();
         guiStyle.alignment = TextAnchor.LowerLeft;
@@ -119,12 +131,14 @@ public class GameControl : MonoBehaviour
 
     public void SpawnAgent()
     {
-        gameSession.SpawnSimpleAgent(mouseOverWorldPosition);
+        if (!IsMouseOverUi())
+            gameSession.SpawnSimpleAgent(mouseOverWorldPosition);
     }
 
     public void MoveSelectedAgents()
     {
-        gameSession.MoveSelectedAgents(mouseOverWorldPosition);
+        if (!IsMouseOverUi())
+            gameSession.MoveSelectedAgents(mouseOverWorldPosition);
     }
 
     public void StopSelectedAgents()
@@ -132,23 +146,20 @@ public class GameControl : MonoBehaviour
         gameSession.StopSelectedAgents();
     }
 
-    // TODO: implement this function to checked if mouse is over UI elements (don't check selection when over UI elements)
-    bool mouseOverGameElements()
+    public bool IsMouseOverUi()
     {
-        return true;
+        return eventSystem.IsPointerOverGameObject();
     }
 
     void GetSelectionArea()
     {
-        if (!mouseOverGameElements())
-            return;
-
-        // If we press the left mouse button, save mouse location and begin selection
-        if (KeyActiveChecker.isActive(GameControlsManager.leftClickDown))
+        // If the left mouse button is pressed, save mouse location and begin selection
+        if (!IsMouseOverUi() && KeyActiveChecker.isActive(GameControlsManager.leftClickDown))
         {
             startedBoxSelection = true;
             isBoxSelecting = true;
             mousePositionAtSelectionStart = Input.mousePosition;
+            SelectionManager.Dirty = true;
         }
 
         if (isBoxSelecting && KeyActiveChecker.isActive(GameControlsManager.leftClick))
@@ -156,7 +167,7 @@ public class GameControl : MonoBehaviour
             mousePositionAtSelectionEnd = Input.mousePosition;
         }
 
-        // If we let go of the left mouse button, end selection
+        // If the left mouse button is released, end selection
         if (KeyActiveChecker.isActive(GameControlsManager.leftClickUp))
         {
             isBoxSelecting = false;
@@ -165,24 +176,68 @@ public class GameControl : MonoBehaviour
 
     void ProcessSelectionArea()
     {
-        // TODO LIST CRITERIA
-        SelectionCriteria selectionCriteria = new SelectionCriteria(true, false, true, gameSession.currentPlayer.ownership.info);
+        // placeholder selection
+        SelectionCriteria selectionCriteria = new SelectionCriteria(
+            true, false, true, 
+            SelectionCriteria.ECondition.Or,
+            gameSession.CurrentPlayer.ownership.info
+            );
+
+        // TODO ADD CRITERIA/SORTING of selected objects
 
         if (!isBoxSelecting)
         {
-            if (selectionManager.GetSelectedObjects().Count == 0)
-                selectionManager.UpdateMouseSelection(mouseOverObject, null);
+            var selectedObjects = SelectionManager.CurrentlySelectedGameObjects;
+
+            try
+            {
+                if (selectedObjects.Count == 1)
+                {
+                    var selectedObject = selectedObjects[0];
+                    var entity = selectedObject.GetComponent<Entity>();
+
+                    if (entity != null)
+                    {
+                        uiManager.OnEvent(new SelectedEntityEvent(entity));
+
+                        if (entity is Agent agent)
+                        {
+                            uiManager.OnEvent(new AgentUiActive(true));
+                        }
+                    }
+                }
+                else
+                {
+                    if (selectedObjects.Count == 0)
+                    {
+                        SelectionManager.UpdateMouseSelection(mouseOverObject, null);
+                    }
+                }
+            }
+            catch (MissingReferenceException e)
+            {
+                // if object gets destroyed, it may still be referenced here if selection manager doesnt update 'currently selected'
+                Debug.Log("Warning: trying to inspect a destroyed object.");
+            }
 
             return;
         }
 
         if (startedBoxSelection)
         {
-            selectionManager.DeselectAll();
-            startedBoxSelection = false;
+            OnDeselectObjects();
         }
+        
+        SelectionManager.UpdateSelected(mousePositionAtSelectionStart, mousePositionAtSelectionEnd, mouseOverObject, selectionCriteria);
+    }
 
-        selectionManager.UpdateSelected(mousePositionAtSelectionStart, mousePositionAtSelectionEnd, mouseOverObject, selectionCriteria);
+    private void OnDeselectObjects()
+    {
+        uiManager.OnEvent(new AgentUiActive(false));
+
+        SelectionManager.DeselectAll();
+
+        startedBoxSelection = false;
     }
 
     private void FixedUpdate()
@@ -276,13 +331,13 @@ public class GameControl : MonoBehaviour
     public static void DrawScreenRectBorder(Rect rect, float thickness, Color color)
     {
         // Top
-        UIUtils.DrawScreenRect(new Rect(rect.xMin, rect.yMin, rect.width, thickness), color);
+        OnGuiUtil.DrawScreenRect(new Rect(rect.xMin, rect.yMin, rect.width, thickness), color);
         // Left
-        UIUtils.DrawScreenRect(new Rect(rect.xMin, rect.yMin, thickness, rect.height), color);
+        OnGuiUtil.DrawScreenRect(new Rect(rect.xMin, rect.yMin, thickness, rect.height), color);
         // Right
-        UIUtils.DrawScreenRect(new Rect(rect.xMax - thickness, rect.yMin, thickness, rect.height), color);
+        OnGuiUtil.DrawScreenRect(new Rect(rect.xMax - thickness, rect.yMin, thickness, rect.height), color);
         // Bottom
-        UIUtils.DrawScreenRect(new Rect(rect.xMin, rect.yMax - thickness, rect.width, thickness), color);
+        OnGuiUtil.DrawScreenRect(new Rect(rect.xMin, rect.yMax - thickness, rect.width, thickness), color);
     }
 
     void OnGUI()
@@ -292,45 +347,58 @@ public class GameControl : MonoBehaviour
             if (isBoxSelecting)
             {
                 // Create a rect from both mouse positions
-                var rect = UIUtils.GetScreenRect(mousePositionAtSelectionStart, Input.mousePosition);
-                UIUtils.DrawScreenRect(rect, guiColor);
-                UIUtils.DrawScreenRectBorder(rect, guiBorderWidth, guiBorderColor);
+                var rect = OnGuiUtil.GetScreenRect(mousePositionAtSelectionStart, Input.mousePosition);
+                OnGuiUtil.DrawScreenRect(rect, guiColor);
+                OnGuiUtil.DrawScreenRectBorder(rect, guiBorderWidth, guiBorderColor);
             }
 
-            var selectedObjects = selectionManager.GetSelectedObjects();
-            int count = selectedObjects.Count;
-            if (count > 0)
-            {
-                string info = "Selected " + count + ((count == 1) ? " entity.\n" : " entities.\n");
+            //var selectedObjects = selectionManager.GetSelectedObjects();
+            //int count = selectedObjects.Count;
+            //if (count > 0)
+            //{
+            //    StringBuilder info = new StringBuilder();
 
-                if (selectedObjects.Count == 1)
-                {
-                    var selectedObject = selectedObjects[0];
-                    var entity = selectedObject.GetComponent<Entity>();
-                    if (entity != null)
-                    {
-                        info += "Entity: " + entity.Name + "\n";
+            //    if (selectedObjects.Count == 1)
+            //    {
+            //        var selectedObject = selectedObjects[0];
+            //        var entity = selectedObject.GetComponent<Entity>();
+            //        if (entity != null)
+            //        {
+            //            info.Append("Entity: " + entity.Name + "\n");
 
-                        if (entity.IsDamageable)
-                            info += "Injury: " + entity.GetInjuryState() + "\n";
-                        else
-                            info += "Cannot be damaged.\n";
+            //            if (entity.IsDamageable)
+            //                info.Append("Injury: " + entity.GetDamageState() + "\n");
+            //            else
+            //                info.Append("Cannot be damaged.\n");
 
-                        if (entity.GetType() == typeof(Agent))
-                        {
-                            Agent agent = entity as Agent;
+            //            if (entity.GetType() == typeof(Agent))
+            //            {
+            //                Agent agent = entity as Agent;
 
-                            info += agent.Body.GetHealthInfo();
-                        }
-                    }
-                }
-                else
-                {
-                }
+            //                info.Append(agent.Body.GetHealthInfo());
 
-                GUI.Box(new Rect(Screen.width - guiMenuWidth, Screen.height - guiMenuHeight, guiMenuWidth, guiMenuHeight), info);
+            //                //uiManager.Notify(new AgentUiActive(true));
+            //                //uiManager.Notify(new AgentChangedEvent(agent));
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        info.Append("Selected " + count + " entities.\n");
+            //        uiManager.Notify(new AgentUiActive(false));
+            //        // TODO: count objects and display how many of each kind
+            //    }
 
-            }
+            //    //GUI.Box(
+            //    //    new Rect(Screen.width - guiMenuWidth, Screen.height - guiMenuHeight, guiMenuWidth, guiMenuHeight),
+            //    //    info.ToString()
+            //    //    );
+
+            //}
+            //else
+            //{
+            //    //uiManager.Notify(new AgentUiActive(false));
+            //}
 
 
             //if (selectedTile != null)

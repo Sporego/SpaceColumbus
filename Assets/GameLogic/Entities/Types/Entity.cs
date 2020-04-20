@@ -1,68 +1,72 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 using UnityEngine.AI;
+
+using Common;
 
 using EntitySelection;
 using Brains;
 
 using Entities.Bodies.Damages;
-using Entities.Bodies.Injuries;
+using Entities.Bodies.Health;
 
 using Players;
 
+using Utilities.Events;
+
 namespace Entities
 {
-    public interface INamed
-    {
-        string Name { get; }
-    }
-
     public enum EntityType : byte
     {
         Building,
         Agent
     }
 
-    public abstract class Entity : MonoBehaviour, INamed, IDamageable, IWithInjuryState
+    public class EntityChangeEvent : GameEvent
+    {
+        public Entity entity { get; private set; }
+
+        public EntityChangeEvent(Entity entity) { this.entity = entity; }
+    }
+    
+    public class EntityComponentChangedEvent : GameEvent
+    {
+        public EntityComponentChangedEvent() { }
+    }
+
+    public abstract class Entity : MonoBehaviour, INamed, IDamageable, IIdentifiable
     {
         public OwnershipInfo ownershipInfo;
 
         public abstract string Name { get; }
         public abstract bool IsDamageable { get ; }
+        public abstract bool IsDamaged { get ; }
 
-        public bool canMove { get; protected set; }
+        public bool CanMove { get; protected set; }
 
         public EntityType entityType { get; protected set; }
 
-        //public List<EntityComponent> components { get; private set; }
-
-        // Start is called before the first frame update
-        void Start()
+        public virtual void Start()
         {
-            canMove = !(this.GetComponent<NavMeshAgent>() is null);
+            EntityManager.RegisterEntity(this);
 
-            //foreach (var component in components)
-            //    component.Start();
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-            //foreach (var component in components)
-            //    component.Update(this);
-        }
-        
-        void FixedUpdate()
-        {
-            //foreach (var component in components)
-            //    component.FixedUpdate(this);
+            CanMove = !(this.GetComponent<NavMeshAgent>() is null);
         }
 
         public abstract void TakeDamage(Damage damage);
 
-        public abstract EInjuryState GetInjuryState();
+        public abstract EDamageState GetDamageState();
+
+        public int GetId()
+        {
+            return this.gameObject.GetInstanceID();
+        }
+
+        private void OnDestroy()
+        {
+            EntityManager.UnregisterEntity(this);
+        }
     }
 
     //public abstract class EntityComponent

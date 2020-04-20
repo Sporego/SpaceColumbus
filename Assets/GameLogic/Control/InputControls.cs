@@ -90,7 +90,7 @@ namespace InputControls
         {
             if (isActive())
             {
-                OnEvent(null);
+                Notify(null);
             }
         }
     }
@@ -109,7 +109,7 @@ namespace InputControls
         public KeyActiveEventListener(KeyInfo keyInfo) : this(new KeyInfo[] { keyInfo }) { }
 
         // extend from this class and override this method to perform some action
-        public abstract void Notify(GameEvent gameEvent);
+        public abstract bool OnEvent(GameEvent gameEvent);
     }
 
     [System.Serializable]
@@ -135,7 +135,7 @@ namespace InputControls
 
                 if (!timeout)
                 {
-                    OnEvent(null);
+                    Notify(null);
                 }
             }
         }

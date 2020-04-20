@@ -8,58 +8,65 @@ using Utilities.Events;
 
 namespace EntitySelection
 {
-    public class SelectionManager : MonoBehaviour
+    public static class SelectionManager
     {
-        // TODO: convert this to Singleton -> another local class with single instance; multiple SM MonoBs will still use the same SM
+        // TODO: convert this to static class
 
         #region Config
-        public float timeBetweenSelectionUpdates = 0.05f; // in seconds, minimum allowed Period for updating selection
+        public static float TimeBetweenSelectionUpdates = 0.05f; // in seconds, minimum allowed Period for updating selection
         #endregion Config
 
-        private List<SelectionListener> currentlySelectedListeners { get; set; }
-        private List<GameObject> currentlySelectedGameObjects { get; set; }
+        public static List<SelectionListener> CurrentlySelectedListeners { get; private set; }
+        public static List<GameObject> CurrentlySelectedGameObjects { get; private set; }
 
-        private List<SelectionListener> selectionListeners = new List<SelectionListener>();
+        private static Dictionary<int, SelectionListener> SelectionListeners;
 
-        private Vector3[] selectionScreenCoords = new Vector3[2];
+        private static Vector3[] SelectionScreenCoords = new Vector3[2];
 
-        private float timeSinceLastSelectionUpdate;
+        private static float TimeSinceLastSelectionUpdate;
 
-        private GameObject mouseOverObject;
+        private static GameObject MouseOverObject;
 
-        public void Awake()
+        public static bool Dirty { get; set; }
+
+        public static void Initialize()
         {
-            Selectable.selectionManager = this; // set the static def
-        }
-
-        public void Start()
-        {
-            timeSinceLastSelectionUpdate = timeBetweenSelectionUpdates;
+            SelectionListeners = new Dictionary<int, SelectionListener>();
+            TimeSinceLastSelectionUpdate = TimeBetweenSelectionUpdates;
             ProcessSelected();
-            //SelectionManager.selectionPrefab = GameObject.FindGameObjectWithTag(StaticGameDefs.GameRootTag).GetComponent<PrefabManager>().SelectionPrefab;
         }
 
-        public void AddSelectable(Selectable selectable)
+        public static void AddSelectable(Selectable selectable)
         {
-            var selectionListener = selectable.GetComponent<Selectable>().selectionListener;
-            this.selectionListeners.Add(selectionListener);
+            int id = selectable.GetId();
+
+            if (!SelectionListeners.ContainsKey(id))
+                SelectionListeners.Add(id, selectable.selectionListener);
+        }
+
+        public static void RemoveSelectable(Selectable selectable)
+        {
+            int id = selectable.GetId();
+
+            if (SelectionListeners.ContainsKey(id))
+                SelectionListeners.Remove(id);
         }
 
         //public List<SelectionListener> GetSelectedListeners() { return this.currentlySelectedListeners; }
 
-        public List<GameObject> GetSelectedObjects() { return this.currentlySelectedGameObjects; }
+        public static List<GameObject> GetSelectedObjects() { return CurrentlySelectedGameObjects; }
 
         //public List<GameObject> GetSelectedObjects(SelectionCriteria criteria)
         //{
         //    return this.currentlySelectedGameObjects;
         //}
 
-        private void ProcessSelected()
+        private static void ProcessSelected()
         {
             List<SelectionListener> selectedListeners = new List<SelectionListener>();
             List<GameObject> selectedObjects = new List<GameObject>();
 
-            foreach (var selectionListener in selectionListeners)
+            foreach (var selectionListener in SelectionListeners.Values)
             {
                 var selectable = selectionListener.selectable;
                 if (selectable.isSelected)
@@ -69,33 +76,35 @@ namespace EntitySelection
                 }
             }
 
-            this.currentlySelectedListeners = selectedListeners;
-            this.currentlySelectedGameObjects = selectedObjects;
+            CurrentlySelectedListeners = selectedListeners;
+            CurrentlySelectedGameObjects = selectedObjects;
         }
 
         //public void SetDirty(bool dirty) { this.dirty = dirty; }
         //public void SetDirty() { SetDirty(true); }
 
-        public void DeselectAll()
+        public static void DeselectAll()
         {
-            this.mouseOverObject = null;
+            MouseOverObject = null;
 
-            foreach (var selectionListener in selectionListeners)
+            foreach (var selectionListener in SelectionListeners.Values)
             {
                 var selectable = selectionListener.selectable;
                 if (selectable.isSelected)
                     selectable.Deselect();
             }
+
+            ProcessSelected();
         }
 
-        public Selectable[] GetSelectables(GameObject gameObject)
+        public static Selectable[] GetSelectables(GameObject gameObject)
         {
-            if (gameObject is null)
+            if (gameObject == null)
                 return new Selectable[] { };
-            return gameObject.GetComponentsInParent<Selectable>();
+            return gameObject?.GetComponentsInParent<Selectable>();
         }
 
-        public void Deselect(GameObject gameObject)
+        public static void Deselect(GameObject gameObject)
         {
             foreach (var selectable in GetSelectables(gameObject))
             {
@@ -103,19 +112,19 @@ namespace EntitySelection
             }
         }
 
-        public void Deselect(Selectable selectable)
+        public static void Deselect(Selectable selectable)
         {
             if (selectable.isSelected)
                 selectable.Deselect();
         }
 
-        public void Select(Selectable selectable, SelectionCriteria selectionCriteria = null)
+        public static void Select(Selectable selectable, SelectionCriteria selectionCriteria = null)
         {
             if (!selectable.isSelected && SelectionCriteria.isValidSelection(selectionCriteria, selectable))
                 selectable.Select();
         }
 
-        public void Select(GameObject gameObject, SelectionCriteria selectionCriteria=null)
+        public static void Select(GameObject gameObject, SelectionCriteria selectionCriteria=null)
         {
             foreach (var selectable in GetSelectables(gameObject))
             {
@@ -123,23 +132,25 @@ namespace EntitySelection
             }
         }
 
-        public void UpdateMouseSelection(GameObject mouseOverObject, SelectionCriteria selectionCriteria)
+        public static void UpdateMouseSelection(GameObject mouseOverObject, SelectionCriteria selectionCriteria)
         {
             // TODO: optimize this
             //if (this.mouseOverObject == mouseOverObject)
             //    return;
 
-            Deselect(this.mouseOverObject);
-            this.mouseOverObject = mouseOverObject;
-            Select(this.mouseOverObject, selectionCriteria);
+            Deselect(MouseOverObject);
+            MouseOverObject = mouseOverObject;
+            Select(MouseOverObject, selectionCriteria);
         }
 
-        public void UpdateSelected(Vector3 s1, Vector3 s2, GameObject mouseOverObject, SelectionCriteria selectionCriteria = null)
+        public static void UpdateSelected(Vector3 s1, Vector3 s2, GameObject mouseOverObject, SelectionCriteria selectionCriteria = null)
         {
-            if (CheckDirty(s1, s2))
+            if (Dirty || CheckDirty(s1, s2))
             {
+                Dirty = false;
+
                 // update controls vars
-                timeSinceLastSelectionUpdate = 0f;
+                TimeSinceLastSelectionUpdate = 0f;
 
                 UpdateBoxSelection(s1, s2, selectionCriteria);
                 UpdateMouseSelection(mouseOverObject, selectionCriteria);
@@ -147,11 +158,10 @@ namespace EntitySelection
             }
         }
 
-        public void UpdateBoxSelection(Vector3 s1, Vector3 s2, SelectionCriteria selectionCriteria = null)
+        public static void UpdateBoxSelection(Vector3 s1, Vector3 s2, SelectionCriteria selectionCriteria = null)
         {
-            for (int i = 0; i < selectionListeners.Count; i++)
+            foreach (var selectionListener in SelectionListeners.Values)
             {
-                var selectionListener = selectionListeners[i];
                 var selectable = selectionListener.selectable;
 
                 if (selectionCriteria != null && SelectionCriteria.isValidSelection(selectionCriteria, selectable))
@@ -175,25 +185,25 @@ namespace EntitySelection
             }
         }
 
-        private bool CheckDirty(Vector3 s1, Vector3 s2)
+        private static bool CheckDirty(Vector3 s1, Vector3 s2)
         {
             bool dirty = false;
 
-            timeSinceLastSelectionUpdate += Time.deltaTime;
+            TimeSinceLastSelectionUpdate += Time.deltaTime;
 
             List<Vector3> selectionScreenCoordsNew = new List<Vector3>() { s1, s2 };
             selectionScreenCoordsNew = selectionScreenCoordsNew.OrderBy(v => v.x).ToList();
 
-            if (selectionScreenCoords[0] != selectionScreenCoordsNew[0] || selectionScreenCoords[1] != selectionScreenCoordsNew[1])
+            if (SelectionScreenCoords[0] != selectionScreenCoordsNew[0] || SelectionScreenCoords[1] != selectionScreenCoordsNew[1])
             {
                 dirty = true;
-                selectionScreenCoords[0] = selectionScreenCoordsNew[0];
-                selectionScreenCoords[1] = selectionScreenCoordsNew[1];
+                SelectionScreenCoords[0] = selectionScreenCoordsNew[0];
+                SelectionScreenCoords[1] = selectionScreenCoordsNew[1];
             }
 
             // harder control
-            dirty &= timeSinceLastSelectionUpdate >= timeBetweenSelectionUpdates;
-            dirty |= timeSinceLastSelectionUpdate >= timeBetweenSelectionUpdates;
+            dirty &= TimeSinceLastSelectionUpdate >= TimeBetweenSelectionUpdates;
+            dirty |= TimeSinceLastSelectionUpdate >= TimeBetweenSelectionUpdates;
 
             return dirty;
         }

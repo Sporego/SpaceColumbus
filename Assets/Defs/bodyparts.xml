@@ -92,9 +92,9 @@
 				</mat>
 			</Stomach>
 			<Head>
-				<isContainer>0</isContainer>
+				<isContainer>1</isContainer>
 				<hp>50</hp>
-				<size>1</size>
+				<size>0.075</size>
 				<mat>
 					<item>
 						<name>Flesh</name>

@@ -60,23 +60,23 @@ namespace Players
         public AIPlayer(uint id) : base(id) { }
     }
 
-    public class PlayerManager
+    public static class PlayerManager
     {
-        public List<Player> players { get; private set; }
+        public static List<Player> Players { get; private set; }
 
-        public PlayerManager()
+        public static void Initialize()
         {
-            players = new List<Player>();
+            Players = new List<Player>();
         }
 
-        public void AddNewPlayer(Player player)
+        public static void AddNewPlayer(Player player)
         {
-            this.players.Add(player);
+            Players.Add(player);
         }
 
-        public Player AddNewPlayer()
+        public static Player AddNewPlayer()
         {
-            Player player = new Player((uint)players.Count);
+            Player player = new Player((uint)Players.Count);
             AddNewPlayer(player);
             return player;
         }

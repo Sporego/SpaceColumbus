@@ -73,7 +73,7 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _OpacityBoost: 1.5
-    - _OutlineDepth: 0.73
+    - _OutlineDepth: 0.8
     - _OutlineThickness: 1
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0

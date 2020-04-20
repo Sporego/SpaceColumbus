@@ -8,7 +8,7 @@ namespace Brains.Movement
     [System.Serializable]
     public class MoveBrain
     {
-        NavMeshAgent navMeshAgent;
+        private NavMeshAgent navMeshAgent;
 
         public float StuckDistanceThreshold = 0.05f; // minimal distance to destination to consider that destination is reached
 
